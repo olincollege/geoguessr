@@ -31,3 +31,10 @@ pipreqs --mode compat
 
 If you already have a `requirements.txt`, the above command will ask you to
 rerun the command with the `--force` flag to overwrite it.
+
+
+Notes lol: 
+we will have instructions for everything later
+
+Download Pygame
+download folium lol
