@@ -38,3 +38,5 @@ we will have instructions for everything later
 
 Download Pygame
 download folium lol
+download live server from extensiosns to be able to see map previews
+tell people to download dataset from kaggle 
