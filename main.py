@@ -8,6 +8,7 @@ import kagglehub
 import pygame as pg
 import pygame_widgets
 from pygame_widgets.button import ButtonArray
+import pandas as pd
 
 # Setup windows position to make pygame pop-up on the left-hand side
 x = 0
@@ -50,7 +51,7 @@ buttonArray = ButtonArray(
 
 
 def main():
-    image = generate_image()
+    image, image_index = generate_image()
     RUNNING = True
     while RUNNING:
         events = pg.event.get()
@@ -111,14 +112,31 @@ def street_view_dataset():
 # street_view_dataset()
 
 
-def generate_image():
+def read_coord_csv(csv_file="coord.csv"):
+    """
+    Read coord.csv file as a pandas dataframe.
+
+    Args:
+        file: a .csv file containing the longitude and latitude for
+        each corresponding image index.
+
+    Returns:
+        A pandas dataframe.
+    """
+    coords = pd.read_csv("test_dataset/" + csv_file, header=None)
+    return coords
+
+
+def generate_image(round_number, coords):
     """
     Generate an image of a random location for the round.
 
     Args:
+        None.
 
     Returns:
         Resized image (.jpg for test and .png for actual)
+        Integer representing index of image in coords.csv
     """
     # Download random image
     image_index = random.randint(0, 2)
@@ -126,8 +144,11 @@ def generate_image():
     # Resize image to 500 x 500
     IMAGE_SIZE = (500, 500)
     round_image = pg.transform.scale(round_image, IMAGE_SIZE)
+    # Find and save coordinates for generated image by its index
+    round_answers = {}
+    round_answers[round_number] = [round_image, coords[image_index]]
 
-    return round_image
+    return round_image, image_index
 
 
 main()
