@@ -36,7 +36,8 @@ rerun the command with the `--force` flag to overwrite it.
 Notes lol: 
 we will have instructions for everything later
 
-Download Pygame
-download folium lol
-download live server from extensiosns to be able to see map previews
-tell people to download dataset from kaggle 
+Download Pygame [pip install]
+    install pygame widgets [pip install]
+download folium lol [pip install]
+download live server from extensiosns to be able to see map previews [no longer need we used webbrowser, but will need to pip install that]
+tell people to download dataset from kaggle, install kagglehub [pip install]
