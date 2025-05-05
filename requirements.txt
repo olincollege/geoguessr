@@ -1,0 +1,5 @@
+folium~=0.19.5
+kagglehub~=0.3.12
+pandas~=2.2.3
+pygame~=2.6.0
+pygame-widgets~=1.2.1

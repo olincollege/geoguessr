@@ -1,43 +1,48 @@
-# Python Project Template Repository
+#  🌏 Geoguessr 🌏
 
-This is a template repository for a Python project. Feel free to use and edit
-this repository (including this file) for your needs. Below, find some
-instructions and tips for using this template repository.
+This is a python-based remake of Geoguessr aimed at educating users on geography in an immersing way. Learn more about different countries and cultures, and take inspiration for your real-life travels!
 
-## How to Use
+## Overview
 
-Click on the "Use this template" button in the top right corner to create a new
-repository based on this template. If this is for a class project, we ask that
-you keep it in the `olincollege` GitHub organization, and that you refrain from
-keeping the repository private. This will ensure that relevant people can access
-your repository for assessment, etc.
+This game recreates the Geoguessr experience with:
+* 10k Google Street View images across all 7 continents
+* A point system based on gaussian distributions
+* Latitude and longitude conversions with haversine functions
+* An interactive world map
 
-## Requirements
 
-The `requirements.txt` file is blank and should be filled out with any project
-dependencies. There is a Python package called `pipreqs` that autogenerates the
-contents of the `requirements.txt` file based on the `import` statements in your
-`.py` files. To get this, run
+## Set-Up
+
+Clone the repository by running the following command in the terminal:
 
 ```
-pip install pipreqs
+git@github.com:olincollege/geoguessr.git
 ```
 
-Then, in the root of your project repository, run:
+Navigate into the directory:
 
 ```
-pipreqs --mode compat
+cd geoguessr/
 ```
 
-If you already have a `requirements.txt`, the above command will ask you to
-rerun the command with the `--force` flag to overwrite it.
+Install the required dependencies:
+
+```
+pip install requirements.txt
+```
+
+Run the game and enjoy!
+
+```
+python main.py
+```
+
+ 
+## Testing
+Test our game function and logic by running `pytest` at the root of the repo. 
 
 
-Notes lol: 
-we will have instructions for everything later
+## Contributors
+The contributors for this project are Esther Aduamah and Irene Hong. Geoguessr was a culminating project for our Intro to Python course to demonstrate our implementation of an MVC architecture with an interactive activity. 
 
-Download Pygame [pip install]
-    install pygame widgets [pip install]
-download folium lol [pip install]
-download live server from extensiosns to be able to see map previews [no longer need we used webbrowser, but will need to pip install that]
-tell people to download dataset from kaggle, install kagglehub [pip install]
+***DISCLAIMER: This is project is not affiliated or endorsed by Gemini. We do not take ownership of any assets from the original Geoguessr game.***
