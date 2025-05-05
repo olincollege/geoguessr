@@ -9,7 +9,7 @@ class GameController:
         self.Marker = Marker()
         self.Scoreboard = ScoreBoard()
         self.current_round = 0
-        self.image_index = None
+        self.image_index = 1
 
         # Hardcoded to use funny_dataset, will change for the other one
         self.coord_file = "funny_dataset/coord.csv"

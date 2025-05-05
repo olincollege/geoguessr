@@ -8,13 +8,10 @@ def main():
     try:
         # Initialize controller (no arguments needed)
         controller = GameController()
-
         # Start first round
         controller.start_round()
-
         # Initialize UI
         ui = GameUI(controller)
-
         # Run game
         ui.run()
 

@@ -1,5 +1,6 @@
 import folium
 from folium import IFrame
+from folium import plugins
 from branca.element import MacroElement
 from jinja2 import Template
 import math
@@ -69,53 +70,65 @@ class Marker:
         self.correct_marker = None
         self.line = None
         self.guess_coords = None
-        self.correct_location = None
+        self.correct_location = []
         self.click_control = None
 
     def draw_guess_marker(self):
         """
-        this is when you make your guess to put the marker down
+        Adds a basic LatLngPopup that shows coordinates when user clicks.
+        User will then copy and paste those into the game.
         """
-        map_var = self.map.get_name()
-        icon_url = "https://cdn-icons-png.flaticon.com/512/684/684908.png"
-
-        tpl = Template(
-            f"""
-        {{% macro script(this, kwargs) %}}
-          var guessIcon = L.icon({{
-            iconUrl: "{icon_url}",
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34]
-          }});
-
-          var guessMarker;
-          {map_var}.on('click', function(e) {{
-            if (guessMarker) {{
-              guessMarker.setLatLng(e.latlng)
-                         .setIcon(guessIcon)
-                         .openPopup();
-            }} else {{
-              guessMarker = L.marker(e.latlng, {{icon: guessIcon}})
-                               .addTo({map_var})
-                               .bindPopup("Your Guess:")
-                               .openPopup();
-            }}
-            document.getElementById('guess_coords').textContent = 
-              JSON.stringify([e.latlng.lat, e.latlng.lng]);
-          }});
-        {{% endmacro %}}
-        """
-        )
-
-        self.click_control = MacroElement()
-        self.click_control._template = tpl
-
-        # if self.click_control:
-        #     self.map.remove_child(self.click_control)
-
-        self.map.add_child(self.click_control)
+        self.map = folium.Map(location=[0, 0], zoom_start=self.zoom_start)
+        self.map.add_child(folium.LatLngPopup())  # Built-in coordinate popup
         return self.map
+
+    # def draw_guess_marker(self):
+    #     """
+    #     this is when you make your guess to put the marker down
+    #     """
+    #     map_var = self.map.get_name()
+    #     icon_url = "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+
+    #     tpl = Template(
+    #         f"""
+    #     {{% macro script(this, kwargs) %}}
+    #       var guessIcon = L.icon({{
+    #         iconUrl: "{icon_url}",
+    #         iconSize: [25, 41],
+    #         iconAnchor: [12, 41],
+    #         popupAnchor: [1, -34]
+    #       }});
+
+    #       var guessMarker;
+    #       {map_var}.on('click', function(e) {{
+    #         if (guessMarker) {{
+    #           guessMarker.setLatLng(e.latlng)
+    #                      .setIcon(guessIcon)
+    #                      .openPopup();
+    #         }} else {{
+    #           guessMarker = L.marker(e.latlng, {{icon: guessIcon}})
+    #                            .addTo({map_var})
+    #                            .bindPopup("Your Guess:")
+    #                            .openPopup();
+    #         }}
+    #         document.getElementById('guess_coords').textContent =
+    #           JSON.stringify([e.latlng.lat, e.latlng.lng]);
+    #       }});
+    #     {{% endmacro %}}
+    #     """
+    #     )
+
+    #     self.click_control = MacroElement()
+    #     self.click_control._template = tpl
+
+    #     # if self.click_control:
+    #     #     self.map.remove_child(self.click_control)
+
+    #     self.map.add_child(self.click_control)
+
+    #     self.map.add_child(folium.LatLngPopup())
+
+    #     return self.map
 
     def draw_correct_marker(self, csv_path, image_dir, image_index):
         """
@@ -127,13 +140,13 @@ class Marker:
         if self.line:
             self.map_og
 
-            # Get correct location
-            with open(csv_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+        # Get correct location
+        with open(csv_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
 
-            line = lines[image_index].strip()
-            lat, lon = map(float, line.split(","))
-            self.correct_location = (lat, lon)
+        line = lines[image_index].strip()
+        lat, lon = map(float, line.split(","))
+        self.correct_location = (lat, lon)
 
         # Add correct marker
         image_path = os.path.join(image_dir, f"{image_index}.jpg")
@@ -172,5 +185,5 @@ class Marker:
         self.correct_marker = None
         self.line = None
         self.guess_coords = None
-        self.correct_location = None
+        self.correct_location = []
         self.click_control = None
