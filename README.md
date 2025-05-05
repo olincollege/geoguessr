@@ -13,29 +13,31 @@ This game recreates the Geoguessr experience with:
 
 ## Set-Up
 
-Clone the repository by running the following command in the terminal:
+1. Clone the repository by running the following command in the terminal:
 
-```
-git@github.com:olincollege/geoguessr.git
-```
+    ```
+    git@github.com:olincollege/geoguessr.git
+    ```
 
-Navigate into the directory:
+2. Navigate into the directory:
 
-```
-cd geoguessr/
-```
+    ```
+    cd geoguessr/
+    ```
 
-Install the required dependencies:
+3. Install the required dependencies:
 
-```
-pip install requirements.txt
-```
+    ```
+    pip install requirements.txt
+    ```
 
-Run the game and enjoy!
+4. Download the kaggle dataset from the link `https://www.kaggle.com/datasets/paulchambaz/google-street-view?resource=download`. Extract the zip file into the root of this repo.
 
-```
-python main.py
-```
+5. Run the game and enjoy!
+
+    ```
+    python main.py
+    ```
 
  
 ## Testing
