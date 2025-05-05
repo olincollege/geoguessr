@@ -6,6 +6,7 @@ from jinja2 import Template
 import math
 import os
 from math import radians, sin, cos, sqrt, atan2
+import traceback
 
 
 class ScoreBoard:
@@ -70,7 +71,7 @@ class Marker:
         self.correct_marker = None
         self.line = None
         self.guess_coords = None
-        self.correct_location = []
+        self.correct_location = None
         self.click_control = None
 
     def draw_guess_marker(self):
@@ -131,47 +132,62 @@ class Marker:
     #     return self.map
 
     def draw_correct_marker(self, csv_path, image_dir, image_index):
-        """
-        Show correct location marker after guess
-        """
-        # Remove existing correct marker if it exists
-        if self.correct_marker:
-            self.map_og  # Fixed here
-        if self.line:
-            self.map_og
+        """Show correct location marker after guess"""
+        try:
+            # Remove existing elements if they exist
+            if (
+                self.correct_marker
+                and self.correct_marker in self.map._children
+            ):
+                self.map.remove_child(self.correct_marker)
+            if self.line and self.line in self.map._children:
+                self.map.remove_child(self.line)
 
-        # Get correct location
-        with open(csv_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            # Get correct location
+            with open(csv_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
 
-        line = lines[image_index].strip()
-        lat, lon = map(float, line.split(","))
-        self.correct_location = (lat, lon)
+            if image_index >= len(lines):
+                raise IndexError("Image index out of range in coordinates file")
 
-        # Add correct marker
-        image_path = os.path.join(image_dir, f"{image_index}.jpg")
-        html = f'<img src="{image_path}" width="300">'
-        iframe = IFrame(html, width=320, height=240)
+            line = lines[image_index].strip()
+            parts = line.split(",")
+            if len(parts) < 2:
+                raise ValueError("Invalid coordinate format in CSV")
 
-        self.correct_marker = folium.Marker(
-            location=[lat, lon],
-            popup=folium.Popup(iframe, max_width=320),
-            icon=folium.Icon(color="red", icon="pushpin"),
-        )
-        self.correct_marker.add_to(self.map)
+            lat, lon = map(float, parts[:2])
+            self.correct_location = (lat, lon)  # Set the correct location
 
-        # # Draw line between markers
-        # if self.guess_coords and self.correct_location:
-        self.line = folium.PolyLine(
-            [self.guess_coords, self.correct_location],
-            color="blue",
-            weight=2.5,
-            opacity=1,
-        )
-        self.line.add_to(self.map)
+            # Add correct marker
+            image_path = os.path.join(image_dir, f"{image_index}.jpg")
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image not found: {image_path}")
 
-        # return self.correct_marker
-        return self.map
+            html = f'<img src="{image_path}" width="300">'
+            iframe = IFrame(html, width=320, height=240)
+
+            self.correct_marker = folium.Marker(
+                location=[lat, lon],
+                popup=folium.Popup(iframe, max_width=320),
+                icon=folium.Icon(color="red", icon="pushpin"),
+            )
+            self.correct_marker.add_to(self.map)
+
+            # Only draw line if we have both points
+            if self.guess_coords and self.correct_location:
+                self.line = folium.PolyLine(
+                    [self.guess_coords, self.correct_location],
+                    color="blue",
+                    weight=2.5,
+                    opacity=1,
+                )
+                self.line.add_to(self.map)
+
+            return self.map
+
+        except Exception as e:
+            print(f"❌ Error drawing correct marker: {e}")
+            raise
 
     def clear_markers(self):
         """

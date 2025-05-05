@@ -2,6 +2,7 @@ from model import Marker, ScoreBoard
 import random
 import webbrowser
 import os
+import traceback
 
 
 class GameController:
@@ -10,52 +11,74 @@ class GameController:
         self.Scoreboard = ScoreBoard()
         self.current_round = 0
         self.image_index = 1
-
-        # Hardcoded to use funny_dataset, will change for the other one
         self.coord_file = "funny_dataset/coord.csv"
         self.image_dir = "funny_dataset/images"
         self.html_path = "map.html"
 
+    def set_correct_location(self, image_index):
+        """Helper method to set the correct location from CSV"""
+        try:
+            with open(self.coord_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            if image_index >= len(lines):
+                raise IndexError(f"Image index {image_index} out of range")
+
+            line = lines[image_index].strip()
+            parts = line.split(",")
+            if len(parts) < 2:
+                raise ValueError(f"Invalid coordinate format: {line}")
+
+            lat, lon = map(float, parts[:2])
+            self.Marker.correct_location = (lat, lon)
+
+        except Exception as e:
+            print(f"❌ Error setting correct location: {e}")
+            raise
+
     def start_round(self):
-        """Initialize new round with random location from funny_dataset"""
-        # Clear previous markers but keep map
+        """Initialize new round with random location"""
         self.Marker.clear_markers()
+        images = os.listdir(self.image_dir)
+        self.image_index = random.randint(0, len(images) - 1)
 
-        self.image_index = random.randint(
-            0, len(os.listdir(self.image_dir)) - 1
-        )
+        # Set correct location first
+        self.set_correct_location(self.image_index)
 
-        # this is the thingie that was making me tweak
-        # self.Marker.draw_correct_marker(
-        #     self.coord_file, self.image_dir, self.image_index
-        # )
         self.Marker.draw_guess_marker()
         self.current_round += 1
 
-        # Save and open the map (right side of screen)
         self.Marker.map.save(self.html_path)
         webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
 
     def handle_guess(self):
         """Process player's guess and return distance and score"""
         if not self.Marker.guess_coords:
-            return 0, 0
+            raise ValueError("No guess coordinates set")
 
-        distance = self.Scoreboard.calculate_distance(
-            self.Marker.guess_coords, self.Marker.correct_location
-        )
-        score = self.Scoreboard.round_score(distance)
+        if not self.Marker.correct_location:
+            raise ValueError("Correct location not set")
 
-        # Reveal solution on existing map
-        self.Marker.draw_correct_marker(
-            self.coord_file, self.image_dir, self.image_index
-        )
+        try:
+            distance = self.Scoreboard.calculate_distance(
+                self.Marker.guess_coords, self.Marker.correct_location
+            )
+            score = self.Scoreboard.round_score(distance)
 
-        self.Scoreboard.add_round(
-            self.Marker.guess_coords, self.Marker.correct_location
-        )
+            # Draw the correct marker (which will also draw the line)
+            self.Marker.draw_correct_marker(
+                self.coord_file, self.image_dir, self.image_index
+            )
 
-        return distance, score
+            self.Scoreboard.add_round(
+                self.Marker.guess_coords, self.Marker.correct_location
+            )
+
+            return distance, score
+
+        except Exception as e:
+            print(f"❌ Error handling guess: {e}")
+            raise
 
     def get_current_image_path(self):
         """Get path of current round's image"""

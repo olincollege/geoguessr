@@ -5,6 +5,7 @@ from pygame_widgets.textbox import TextBox
 from model import Marker, ScoreBoard
 from controller import GameController
 import os
+import traceback
 
 
 class GameUI:
@@ -116,49 +117,50 @@ class GameUI:
                 input_text = self.coord_input_text.strip()
                 print(f"[DEBUG] Raw input: '{input_text}'")
 
-                # Reject completely empty input
                 if not input_text:
                     raise ValueError("No coordinates entered.")
 
-                # Normalize separators
-                if "," in input_text:
-                    parts = [p.strip() for p in input_text.split(",")]
-                else:
-                    parts = [p.strip() for p in input_text.split()]
+                # Parse coordinates
+                parts = [
+                    p.strip() for p in input_text.replace(" ", "").split(",")
+                ]
+                if len(parts) < 2:
+                    parts = input_text.split()
 
                 print(f"[DEBUG] Parsed parts: {parts}")
 
-                if len(parts) != 2 or not all(parts):
+                if len(parts) != 2:
                     raise ValueError(
-                        "Please enter two valid numbers (lat and lon)."
+                        "Please enter exactly two numbers (lat and lon)."
                     )
 
                 lat = float(parts[0])
                 lon = float(parts[1])
 
+                # Validate coordinate ranges
+                if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+                    raise ValueError("Invalid coordinate ranges")
+
                 # Save guess
                 self.controller.Marker.guess_coords = (lat, lon)
 
-                # Handle guess (distance, score)
+                # This will handle the distance calculation and marker drawing
                 distance, score = self.controller.handle_guess()
+
                 self.coord_text = f"Guess: ({lat:.4f}, {lon:.4f})"
                 self.score_text = f"Score: {score}"
                 self.distance_text = f"Distance: {distance / 1000:.1f} km"
                 self.guess_confirmed = True
 
-                # Save updated map
-                self.controller.Marker.map.save(self.controller.html_path)
-
                 # Clear input
                 self.coord_input_text = ""
 
             except ValueError as ve:
-                self.coord_text = f"Input error: {ve}"
+                self.coord_text = f"Error: {str(ve)}"
+                print(f"❌ Validation error: {ve}")
             except Exception as e:
-                print("❌ Unexpected error confirming guess:", e)
-                self.coord_text = (
-                    "Invalid coordinates! Try format: 42.36, -71.05"
-                )
+                self.coord_text = "Error processing guess"
+                print(f"❌ Unexpected error: {e}\n{traceback.format_exc()}")
 
     def on_next_round(self):
         """
