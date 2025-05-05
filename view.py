@@ -16,6 +16,7 @@ class GameUI:
         self.initialize_ui()
         self.guess_confirmed = False
         self.score_text = ""
+        self.average_score_text = ""
         self.distance_text = ""
         self.coord_file = "funny_dataset/coord.csv"
         self.image_dir = "funny_dataset/images"
@@ -25,7 +26,7 @@ class GameUI:
         self.image_index = 1
 
         # textbox variables
-        self.coords_box = pygame.Rect(550, 700, 250, 40)
+        self.coords_box = pygame.Rect(525, 510, 250, 40)
         self.coords_color_inactive = pygame.Color("gray")
         self.coords_color_active = pygame.Color("dodgerblue2")
         self.coords_color = self.coords_color_inactive
@@ -41,7 +42,7 @@ class GameUI:
         os.environ["SDL_VIDEO_WINDOW_POS"] = f"{x},{y}"
 
         pygame.init()
-        self.screen = pygame.display.set_mode((1200, 800))
+        self.screen = pygame.display.set_mode((1060, 700))
         pygame.display.set_caption("GeoGuessr")
         self.clock = pygame.time.Clock()
         self.background_color = (245, 245, 245)  # light gray
@@ -63,7 +64,7 @@ class GameUI:
         self.confirm_button = Button(
             self.screen,
             50,
-            700,
+            600,
             200,
             50,
             text="Confirm Guess",
@@ -75,7 +76,7 @@ class GameUI:
         self.next_button = Button(
             self.screen,
             300,
-            700,
+            600,
             200,
             50,
             text="Next Round",
@@ -145,11 +146,12 @@ class GameUI:
                 self.controller.Marker.guess_coords = (lat, lon)
 
                 # This will handle the distance calculation and marker drawing
-                distance, score = self.controller.handle_guess()
+                distance, score, average_score = self.controller.handle_guess()
 
                 self.coord_text = f"Guess: ({lat:.4f}, {lon:.4f})"
-                self.score_text = f"Score: {score}"
-                self.distance_text = f"Distance: {distance / 1000:.1f} km"
+                self.score_text = f"{score} points"
+                self.average_score_text = f"{average_score} points"
+                self.distance_text = f"{distance / 1000:.1f} km"
                 self.guess_confirmed = True
 
                 # Clear input
@@ -168,12 +170,13 @@ class GameUI:
         """
         self.controller.start_round()
         self.score_text = ""
+        self.average_score_text = ""
         self.distance_text = ""
         self.guess_confirmed = False
 
     def display_image(self, image_path):
         image = pygame.image.load(image_path)
-        return pygame.transform.scale(image, (500, 500))
+        return pygame.transform.scale(image, (450, 500))
 
     def update_display(self, events):
         # Clear the screen
@@ -186,25 +189,53 @@ class GameUI:
             )
         )
         if current_image:
-            self.screen.blit(current_image, (200, 50))  # Adjust as needed
+            self.screen.blit(current_image, (50, 50))  # Adjust as needed
 
-        # --- Display Score and Distance ---
-        if self.score_text:
-            score_surface = self.font.render(self.score_text, True, (0, 0, 0))
-            self.screen.blit(score_surface, (50, 650))
-        if self.distance_text:
-            distance_surface = self.font.render(
-                self.distance_text, True, (0, 0, 0)
-            )
-            self.screen.blit(distance_surface, (300, 650))
+        # --- Display ScoreBoard ---
+        # Draw scoreboard
+        scoreboard_surface = pygame.Surface((400, 400))
+        scoreboard_surface.fill((255, 253, 208))
 
-        # Draw input box label
+        # Draw the title
+        title_surface = self.font.render("SCOREBOARD", True, (0, 0, 0))
+        title_rect = title_surface.get_rect()
+        title_rect.topleft = (25, 25)
+        scoreboard_surface.blit(title_surface, title_rect)
+
+        # Draw the distance
+        distance_surface = self.font.render(
+            "Distance: " + self.distance_text, True, (0, 0, 0)
+        )
+        distance_rect = distance_surface.get_rect()
+        distance_rect.topleft = (25, 100)
+        scoreboard_surface.blit(distance_surface, distance_rect)
+
+        # Draw the score
+        score_surface = self.font.render(
+            "Round Score: " + self.score_text, True, (0, 0, 0)
+        )
+        score_rect = score_surface.get_rect()
+        score_rect.topleft = (25, 175)
+        scoreboard_surface.blit(score_surface, score_rect)
+
+        # Draw the average score
+        average_score_surface = self.font.render(
+            "Average Score: " + self.average_score_text, True, (0, 0, 0)
+        )
+        average_score_rect = average_score_surface.get_rect()
+        average_score_rect.topleft = (25, 250)
+        scoreboard_surface.blit(average_score_surface, average_score_rect)
+
+        # Blit the components
+        self.screen.blit(scoreboard_surface, (525, 50))
+
+        # --- Display Input Box ---
         label_surface = self.font.render(
-            "Enter lat & lon (e.g., 42.36, -71.05 OR 42.36 -71.05):",
+            "Enter coordinates (e.g. lat, lon OR lat lon):",
             True,
             (0, 0, 0),
         )
-        self.screen.blit(label_surface, (550, 670))
+        self.screen.blit(label_surface, (525, 475))
 
         # Draw text entered
         txt_surface = self.font.render(self.coord_input_text, True, (0, 0, 0))

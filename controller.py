@@ -49,6 +49,7 @@ class GameController:
         self.current_round += 1
 
         self.Marker.map.save(self.html_path)
+
         webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
 
     def handle_guess(self):
@@ -74,7 +75,9 @@ class GameController:
                 self.Marker.guess_coords, self.Marker.correct_location
             )
 
-            return distance, score
+            average_score = self.Scoreboard.get_average_score()
+
+            return distance, score, average_score
 
         except Exception as e:
             print(f"❌ Error handling guess: {e}")

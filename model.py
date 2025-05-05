@@ -45,7 +45,9 @@ class ScoreBoard:
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
         RADIUS_OF_EARTH = 6371000  # meters
-        return RADIUS_OF_EARTH * c
+        distance = RADIUS_OF_EARTH * c
+
+        return distance
 
     @staticmethod
     def round_score(distance_meters):
