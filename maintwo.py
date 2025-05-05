@@ -17,9 +17,9 @@ def main():
 
     except FileNotFoundError as e:
         print(f"Error: {e}")
-        print("Please ensure funny_dataset directory exists with:")
-        print("- funny_dataset/coord.csv")
-        print("- funny_dataset/images/*.jpg")
+        print("Please ensure dataset directory exists with:")
+        print("- dataset/coord.csv")
+        print("- dataset/images/*.jpg")
         sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {e}")

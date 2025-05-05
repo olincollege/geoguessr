@@ -161,7 +161,7 @@ class Marker:
             self.correct_location = (lat, lon)  # Set the correct location
 
             # Add correct marker
-            image_path = os.path.join(image_dir, f"{image_index}.jpg")
+            image_path = os.path.join(image_dir, f"{image_index}.png")
             if not os.path.exists(image_path):
                 raise FileNotFoundError(f"Image not found: {image_path}")
 

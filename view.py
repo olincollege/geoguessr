@@ -18,8 +18,8 @@ class GameUI:
         self.score_text = ""
         self.average_score_text = ""
         self.distance_text = ""
-        self.coord_file = "funny_dataset/coord.csv"
-        self.image_dir = "funny_dataset/images"
+        self.coord_file = "dataset/coord.csv"
+        self.image_dir = "dataset/images"
         self.html_path = "map.html"
         self.coord_text = ""
 
@@ -185,7 +185,7 @@ class GameUI:
         # --- Display current round's image ---
         current_image = self.display_image(
             os.path.join(
-                "funny_dataset", "images", f"{self.controller.image_index}.jpg"
+                "dataset", "images", f"{self.controller.image_index}.png"
             )
         )
         if current_image:

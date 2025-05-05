@@ -31,7 +31,11 @@ This game recreates the Geoguessr experience with:
     pip install requirements.txt
     ```
 
-4. Download the kaggle dataset from the link `https://www.kaggle.com/datasets/paulchambaz/google-street-view?resource=download`. Extract the zip file into the root of this repo.
+4. Download the Kaggle dataset from the link `https://www.kaggle.com/datasets/paulchambaz/google-street-view?resource=download`. Extract the zip file, move the `dataset` folder into the root of this repository, then run:
+
+    ```
+    mkdir -p dataset/images && mv dataset/*.png dataset/images/
+    ```    
 
 5. Run the game and enjoy!
 

@@ -11,8 +11,8 @@ class GameController:
         self.Scoreboard = ScoreBoard()
         self.current_round = 0
         self.image_index = 1
-        self.coord_file = "funny_dataset/coord.csv"
-        self.image_dir = "funny_dataset/images"
+        self.coord_file = "dataset/coords.csv"
+        self.image_dir = "dataset/images"
         self.html_path = "map.html"
 
     def set_correct_location(self, image_index):
@@ -85,4 +85,4 @@ class GameController:
 
     def get_current_image_path(self):
         """Get path of current round's image"""
-        return os.path.join(self.image_dir, f"{self.image_index}.jpg")
+        return os.path.join(self.image_dir, f"{self.image_index}.png")
