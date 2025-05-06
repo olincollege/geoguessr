@@ -1,88 +1,95 @@
-from model import Marker, ScoreBoard
+"""Controller file"""
+
 import random
 import webbrowser
 import os
 import traceback
 
 
-class GameController:
-    def __init__(self):
-        self.Marker = Marker()
-        self.Scoreboard = ScoreBoard()
-        self.current_round = 0
-        self.image_index = 1
-        self.coord_file = "dataset/coords.csv"
-        self.image_dir = "dataset/images"
-        self.html_path = "map.html"
+class InteractiveWidgets:
+    """
+    Connects inputs from interactive widgets (textbox, buttons, markers) to the model.
 
-    def set_correct_location(self, image_index):
-        """Helper method to set the correct location from CSV"""
-        try:
-            with open(self.coord_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+    Attributes:
+        coord_input_text (str): the player's input in the pygame textbox.
+        Setup: all methods and attributes from class Setup.
+        Stats: all methods and attributes from class Stats.
+    """
 
-            if image_index >= len(lines):
-                raise IndexError(f"Image index {image_index} out of range")
+    def __init__(
+        self,
+        Setup,
+        GameUI,
+        coord_input_text,
+    ):
+        self._Setup = Setup
+        self._GameUI = GameUI
+        self._coord_input_text = coord_input_text
+        self._coord_text = ""
+        # self._score_text = ""
+        # self._average_score_text = ""
+        # self._distance_text = distance_text
+        self._guess_confirmed = False
 
-            line = lines[image_index].strip()
-            parts = line.split(",")
+    @property
+    def coord_input_text(self):
+        return self._coord_input_text
+
+    @property
+    def guess_confirmed(self):
+        return self._guess_confirmed
+
+    def on_confirm(self):
+        """
+        On-click function for "confirm guess" button.
+
+        Raises:
+            ValueError: If input is missing, two numbers aren't given, or
+            coordinates are out of range.
+            Exception: Unexpected errors during processing.
+        """
+        # Should change to be if TRUE since guess_confirmed should change
+        if not self.guess_confirmed:
+            # try:
+            # Define the input_text
+            input_text = self.coord_input_text.strip()
+            print(f"[DEBUG] Raw input: '{input_text}'")
+
+            # Check that input_text was entered
+            if not input_text:
+                raise ValueError("No coordinates entered.")
+
+            # Parse input_text for guess coordinates
+            parts = [p.strip() for p in input_text.replace(" ", "").split(",")]
             if len(parts) < 2:
-                raise ValueError(f"Invalid coordinate format: {line}")
+                parts = input_text.split()
+            # Print out parsed guess coordinates
+            print(f"[DEBUG] Parsed parts: {parts}")
 
-            lat, lon = map(float, parts[:2])
-            self.Marker.correct_location = (lat, lon)
+            # Check that parsed coordinates have two parts (lat & lon)
+            if len(parts) != 2:
+                raise ValueError(
+                    "Please enter exactly two numbers (lat and lon)."
+                )
 
-        except Exception as e:
-            print(f"❌ Error setting correct location: {e}")
-            raise
+            # Convert lat and lon to float types
+            lat = float(parts[0])
+            lon = float(parts[1])
 
-    def start_round(self):
-        """Initialize new round with random location"""
-        self.Marker.clear_markers()
-        images = os.listdir(self.image_dir)
-        self.image_index = random.randint(0, len(images) - 1)
+            # Validate coordinate ranges
+            if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+                raise ValueError("Invalid coordinate ranges")
 
-        # Set correct location first
-        self.set_correct_location(self.image_index)
+            # Save guess coordinates to class Setup
+            input_coords = [lat, lon]
+            # # Scoreboard Stats calculations
+            self._Setup.handle_guess(input_coords)
 
-        self.Marker.draw_guess_marker()
-        self.current_round += 1
+            self.guess_confirmed = True
 
-        self.Marker.map.save(self.html_path)
-
-        webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
-
-    def handle_guess(self):
-        """Process player's guess and return distance and score"""
-        if not self.Marker.guess_coords:
-            raise ValueError("No guess coordinates set")
-
-        if not self.Marker.correct_location:
-            raise ValueError("Correct location not set")
-
-        try:
-            distance = self.Scoreboard.calculate_distance(
-                self.Marker.guess_coords, self.Marker.correct_location
-            )
-            score = self.Scoreboard.round_score(distance)
-
-            # Draw the correct marker (which will also draw the line)
-            self.Marker.draw_correct_marker(
-                self.coord_file, self.image_dir, self.image_index
-            )
-
-            self.Scoreboard.add_round(
-                self.Marker.guess_coords, self.Marker.correct_location
-            )
-
-            average_score = self.Scoreboard.get_average_score()
-
-            return distance, score, average_score
-
-        except Exception as e:
-            print(f"❌ Error handling guess: {e}")
-            raise
-
-    def get_current_image_path(self):
-        """Get path of current round's image"""
-        return os.path.join(self.image_dir, f"{self.image_index}.png")
+    def on_next_round(self):
+        """
+        On-click function for "next round" button.
+        """
+        self._Setup.start_round()
+        self.coord_input_text = ""
