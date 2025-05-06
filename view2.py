@@ -1,80 +1,98 @@
 """View file"""
 
+import os
 import folium
 from folium import IFrame
 import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
-from pygame_widgets.textbox import TextBox
-from model import Marker, ScoreBoard
-from controller import GameController
-import os
-import traceback
+from model2 import Setup
+from controller2 import InteractiveWidgets
 
 
 class GamePins:
-    def __init__(self, guess_coords):
-        self.guess_marker = None
-        self.correct_marker = None
-        self.line = None
-        self.guess_coords = None
-        self.correct_location = None
-        self.click_control = None
+    """
+    Displaying marker for correct location for a given round on Folium map.
 
-    def draw_correct_marker(
-        self, csv_path, image_dir, image_index, guess_coords
-    ):
-        """Show correct location marker after guess"""
-        # If you really meant to reset image_index to 0–9999, do it explicitly:
+    Attributes:
+        InteractiveWidgets: All attributes and methods from InteractiveWidgets class.
+        guess_coords (list): Player's guess coordinates.
+    """
+
+    def __init__(self, InteractiveWidgets, guess_coords):
+        self._InteractiveWidgets = InteractiveWidgets
+        self.guess_coords = []
+
+    def draw_correct_marker(self, csv_path, image_dir, image_index):
+        """
+        Show correct location marker after guess
+
+        Args:
+            csv_path (str): the path to coords.csv in dataset.
+            image_dir (str): the path to the image directory in dataset.
+            image_index (int): the index of the generated round image.
+
+        Raises:
+            IndexError: Image index out of range of coords.csv.
+            ValueError: Coordinates not split into lat and lon.
+            FileNotFoundError: Image path not found.
+        """
         image_index = list(range(10000))
+        try:
+            # Remove existing elements if they exist
+            if (
+                self.correct_marker
+                and self.correct_marker in self.map._children
+            ):
+                self.map.remove_child(self.correct_marker)
+            if self.line and self.line in self.map._children:
+                self.map.remove_child(self.line)
 
-        # Remove existing elements if they exist
-        if self.correct_marker and self.correct_marker in self.map._children:
-            self.map.remove_child(self.correct_marker)
-        if self.line and self.line in self.map._children:
-            self.map.remove_child(self.line)
+            # Get correct location
+            with open(csv_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
 
-        # Get correct location
-        with open(csv_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            if image_index >= len(lines):
+                raise IndexError("Image index out of range in coordinates file")
 
-        if image_index >= len(lines):
-            raise IndexError("Image index out of range in coordinates file")
+            line = lines[image_index].strip()
+            parts = line.split(",")
+            if len(parts) < 2:
+                raise ValueError("Invalid coordinate format in CSV")
 
-        line = lines[image_index].strip()
-        parts = line.split(",")
-        if len(parts) < 2:
-            raise ValueError("Invalid coordinate format in CSV")
+            lat, lon = map(float, parts[:2])
+            self.correct_location = (lat, lon)  # Set the correct location
 
-        lat, lon = map(float, parts[:2])
-        self.correct_location = [lat, lon]
+            # Add correct marker
+            image_path = os.path.join(image_dir, f"{image_index}.png")
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image not found: {image_path}")
 
-        # Add correct marker
-        image_path = os.path.join(image_dir, f"{image_index}.png")
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image not found: {image_path}")
+            html = f'<img src="{image_path}" width="300">'
+            iframe = IFrame(html, width=320, height=240)
 
-        html = f'<img src="{image_path}" width="300">'
-        iframe = IFrame(html, width=320, height=240)
-
-        self.correct_marker = folium.Marker(
-            location=[lat, lon],
-            popup=folium.Popup(iframe, max_width=320),
-            icon=folium.Icon(color="red", icon="pushpin"),
-        )
-        self.correct_marker.add_to(self.map)
-
-        # Only draw line if we have both points
-        if guess_coords and self.correct_location:
-            self.line = folium.PolyLine(
-                [guess_coords, self.correct_location],
-                color="blue",
-                weight=2.5,
-                opacity=1,
+            self.correct_marker = folium.Marker(
+                location=[lat, lon],
+                popup=folium.Popup(iframe, max_width=320),
+                icon=folium.Icon(color="red", icon="pushpin"),
             )
-            self.line.add_to(self.map)
+            self.correct_marker.add_to(self.map)
 
-        return self.map
+            # Only draw line if we have both points
+            if self.guess_coords and self.correct_location:
+                self.line = folium.PolyLine(
+                    [self.guess_coords, self.correct_location],
+                    color="blue",
+                    weight=2.5,
+                    opacity=1,
+                )
+                self.line.add_to(self.map)
+
+            return self.map
+
+        except Exception as e:
+            print(f"❌ Error drawing correct marker: {e}")
+            raise
 
     @property
     def guess_coords(self):
@@ -91,106 +109,146 @@ class GamePins:
         self.guess_marker = None
         self.correct_marker = None
         self.line = None
-        guess_coords = []
+        self.guess_coords = []
         self.correct_location = []
         self.click_control = None
 
 
-# class GameRunner:
+class GameRunner:
+    """
+    Runs pygame.
 
-#     def __init__(self, controller):
-#         self.controller = controller
+    Attributes:
+        InteractiveWidgets: all attributes and methods from InteractiveWidgets
+        class.
+        GameUI: all attributes and methods from InteractiveWidgets
+        class.
+    """
 
-#     def run(
-#         self,
-#         coords_box,
-#         coords_color_active,
-#         coords_color_inactive,
-#         coord_input_text,
-#         update_display,
-#         clock,
-#     ):
-#         running = True
-#         while running:
-#             events = pygame.event.get()
-#             for event in events:
-#                 if event.type == pygame.QUIT:
-#                     running = False
+    def __init__(self, InteractiveWidgets, GameUI):
+        self.InteractiveWidgets = InteractiveWidgets
+        self.GameUI = GameUI
 
-#                 if event.type == pygame.MOUSEBUTTONDOWN:
-#                     # If the user clicked on the input_box
-#                     if coords_box.collidepoint(event.pos):
-#                         self.active = True
-#                     else:
-#                         self.active = False
-#                     coords_color = (
-#                         coords_color_active
-#                         if self.active
-#                         else coords_color_inactive
-#                     )
+    def run(
+        self,
+        coords_box,
+        coords_color_active,
+        coords_color_inactive,
+        coord_input_text,
+        clock,
+    ):
+        """
+        Loop through pygame.
 
-#                 if event.type == pygame.KEYDOWN and self.active:
-#                     if event.key == pygame.K_RETURN:
-#                         print("Pressed Enter: ", coord_input_text)
-#                     elif event.key == pygame.K_BACKSPACE:
-#                         coord_input_text = coord_input_text[:-1]
-#                     else:
-#                         coord_input_text += event.unicode
+        Args:
+            coords_box (pygame.Rect): textbox to input guess coordinates.
+            coords_color_active (pygame.Color): color for active textbox.
+            coords_color_inactive (pygame.Color): color for inactive textbox.
+            coords_input_text (str): player's inputted guess coordinates.
+        """
+        running = True
+        while running:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    running = False
 
-#             update_display(events)
-#             clock.tick(60)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # If the user clicked on the input_box
+                    if coords_box.collidepoint(event.pos):
+                        self.active = True
+                    else:
+                        self.active = False
+                    coords_color = (
+                        coords_color_active
+                        if self.active
+                        else coords_color_inactive
+                    )
 
-#         pygame.quit()
+                if event.type == pygame.KEYDOWN and self.active:
+                    if event.key == pygame.K_RETURN:
+                        print("Pressed Enter: ", coord_input_text)
+                    elif event.key == pygame.K_BACKSPACE:
+                        coord_input_text = coord_input_text[:-1]
+                    else:
+                        coord_input_text += event.unicode
+
+            self.GameUI.update_display(events)
+            clock.tick(60)
+
+        pygame.quit()
 
 
 class GameUI:
     """
-    Updates display based on user's inputs and game status.
+    Setup for pygame display (buttons, textbox, scoreboard, image).
+
+    AttributesL
+        image_index (int): index of the generated round image.
+        GamePins: all attributes and methods from GamePins class.
+        Setup: all attributes and methods from Setup class.
+        InteractiveWidgets: all attributes and methods from Interactive
+        Widgets class.
     """
 
-    def __init__(self, image_index, GamePins, Setup):
+    def __init__(self, image_index, GamePins, Setup, InteractiveWidgets):
         self._image_index = image_index
+
         self._GamePins = GamePins
         self._Setup = Setup
+        self._InteractiveWidgets = InteractiveWidgets
 
-        self.initialize_pygame()
-        self.initialize_ui()
-        self.guess_confirmed = False
-        self.score_text = ""
-        self.distance_text = ""
-        self.coord_file = "dataset/coord.csv"
-        self.images_dir = "dataset/images"
-        self.html_path = "map.html"
-        coord_input_text = ""
+        # self.guess_confirmed = False
+        self._score_text = None
+        self._average_score_text = None
+        self._distance_text = None
 
         # textbox variables
-        self.coords_box = pygame.Rect(525, 510, 250, 40)
+        self.coords_box = pygame.Rect(550, 700, 250, 40)
         self.coords_color_inactive = pygame.Color("gray")
         self.coords_color_active = pygame.Color("dodgerblue2")
         self.coords_color = self.coords_color_inactive
         self.active = False
-        self.coord_input_text = ""
+        self._coord_input_text = None
 
-    def initialize_ui(self):
-        self.initialize_pygame(self)
-        self.initialize_buttons(self)
+        self.initialize_buttons()
+        self.initialize_pygame()
+
+    @property
+    def coord_text(self):
+        return self._coord_input_text
+
+    @property
+    def score_text(self):
+        return self._score_text
+
+    @property
+    def average_score_text(self):
+        return self._average_score_text
+
+    @property
+    def distance_text(self):
+        return self._distance_text
 
     def initialize_pygame(self):
         """
-        open the window
+        Initialize the pygame window.
         """
         # Set window position to left side of screen
         x, y = 0, 0
         os.environ["SDL_VIDEO_WINDOW_POS"] = f"{x},{y}"
 
         pygame.init()
-        self.screen = pygame.display.set_mode((1060, 700))
+        self.screen = pygame.display.set_mode((1200, 800))
         pygame.display.set_caption("GeoGuessr")
         self.clock = pygame.time.Clock()
         self.background_color = (245, 245, 245)  # light gray
         self.font = pygame.font.Font(None, 36)
 
     def initialize_buttons(self):
+        """
+        Initialize buttons on display.
+        """
         # Button Parameters
         button_params = {
             "font": pygame.font.SysFont("Arial", 20),
@@ -206,69 +264,83 @@ class GameUI:
         self.confirm_button = Button(
             self.screen,
             50,
-            600,
+            700,
             200,
             50,
             text="Confirm Guess",
             **button_params,
-            onClick=self.on_confirm,
+            onClick=self._InteractiveWidgets.on_confirm,
         )
 
         # Next Round Button
         self.next_button = Button(
             self.screen,
             300,
-            600,
+            700,
             200,
             50,
             text="Next Round",
             **button_params,
-            onClick=self.on_next_round,
+            onClick=self._InteractiveWidgets.on_next_round,
         )
 
     def display_image(self, image_path):
-        image = pygame.image.load(self.image_path)
+        """
+        Displays generated round image onto screen.
+
+        Returns:
+            pygame.image object to show location to user.
+        """
+        image = pygame.image.load(image_path)
         return pygame.transform.scale(image, (500, 500))
 
-    def update_display(
-        self,
-        events,
-        coords_box,
-        coords_color,
-        coord_input_text,
-        coord_text,
-        score_text,
-        average_score_text,
-        distance_text,
-        guess_confirmed,
-    ):
+    def update_display(self, events):
+        """
+        Updates display based on events.
+
+        Args:
+            events occuring within pygame loop.
+        """
         # Clear the screen
         self.screen.fill(self.background_color)
 
-        # --- Display current round's image ---
-        current_image = self.display_image(
-            os.path.join("funny_dataset", "images", f"{self._image_index}.jpg")
-        )
-        if current_image:
-            self.screen.blit(current_image, (200, 50))  # Adjust as needed
+        # --- Display ScoreBoard ---
+        # Draw the scoreboard
+        scoreboard_surface = pygame.Surface((400, 400))
+        scoreboard_surface.fill((255, 253, 208))
 
-        # --- Display Score and Distance ---
-        if self.score_text:
-            score_surface = self.font.render(self.score_text, True, (0, 0, 0))
-            self.screen.blit(score_surface, (50, 650))
-        if self.distance_text:
-            distance_surface = self.font.render(
-                self.distance_text, True, (0, 0, 0)
-            )
-            self.screen.blit(distance_surface, (300, 650))
+        # Draw the title
+        title_surface = self.font.render("SCOREBOARD", True, (0, 0, 0))
+        title_rect = title_surface.get_rect()
+        title_rect.topleft = (25, 25)
+        scoreboard_surface.blit(title_surface, title_rect)
 
-        # Draw input box label
-        label_surface = self.font.render(
-            "Enter lat & lon (e.g., 42.36, -71.05 OR 42.36 -71.05):",
-            True,
-            (0, 0, 0),
+        # Draw the distance
+        distance_surface = self.font.render(
+            "Distance: " + self.distance_text, True, (0, 0, 0)
         )
-        self.screen.blit(label_surface, (550, 670))
+        distance_rect = distance_surface.get_rect()
+        distance_rect.topleft = (25, 100)
+        scoreboard_surface.blit(distance_surface, distance_rect)
+
+        # Draw the score
+        score_surface = self.font.render(
+            "Round Score: " + self.score_text, True, (0, 0, 0)
+        )
+        score_rect = score_surface.get_rect()
+        score_rect.topleft = (25, 175)
+        scoreboard_surface.blit(score_surface, score_rect)
+
+        # Draw the average score
+        average_score_surface = self.font.render(
+            "Average Score: " + self.average_score_text, True, (0, 0, 0)
+        )
+        average_score_rect = average_score_surface.get_rect()
+        average_score_rect.topleft = (25, 250)
+        scoreboard_surface.blit(average_score_surface, average_score_rect)
+
+        # Blit the components and display onto the pygame window
+        self.screen.blit(scoreboard_surface, (525, 50))
 
         # --- Display Input Box ---
         label_surface = self.font.render(
@@ -294,23 +366,3 @@ class GameUI:
 
         # --- Update Display ---
         pygame.display.flip()
-
-    @property
-    def coord_text(self):
-        return self._coord_text
-
-    @property
-    def score_text(self):
-        return self._score_text
-
-    @property
-    def average_score_text(self):
-        return self._average_score_text
-
-    @property
-    def distance_text(self):
-        return self._distance_text
-
-    @property
-    def guess_confirmed(self):
-        return self._guess_confirmed
