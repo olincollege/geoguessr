@@ -27,7 +27,6 @@ class GameUI:
         image_dir (str): path to the Google Street View images
         subfolder.
         html_path (str): html path to the folium map.
-        # CHECK THIS ATTRIBUTE, I DON'T GET THE PURPOSE OF IT
         coord_text (str): inputted guess coordinates.
         image_index (int): index of the generated image.
 
