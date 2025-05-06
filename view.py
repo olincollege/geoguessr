@@ -27,7 +27,6 @@ class GameUI:
         image_dir (str): path to the Google Street View images
         subfolder.
         html_path (str): html path to the folium map.
-        # CHECK THIS ATTRIBUTE, I DON'T GET THE PURPOSE OF IT
         coord_text (str): inputted guess coordinates.
         image_index (int): index of the generated image.
 
@@ -188,7 +187,7 @@ class GameUI:
             coordinates are out of range.
             Exception: Unexpected errors during processing.
         """
-        if not self.guess_confirmed:
+        if not self.guess_confirmed:<video src="path/to/video.mp4" width="320" height="240" controls></video>
             try:
                 input_text = self.coord_input_text.strip()
                 print(f"[DEBUG] Raw input: '{input_text}'")
