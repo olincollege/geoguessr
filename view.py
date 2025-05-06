@@ -187,7 +187,7 @@ class GameUI:
             coordinates are out of range.
             Exception: Unexpected errors during processing.
         """
-        if not self.guess_confirmed:
+        if not self.guess_confirmed:<video src="path/to/video.mp4" width="320" height="240" controls></video>
             try:
                 input_text = self.coord_input_text.strip()
                 print(f"[DEBUG] Raw input: '{input_text}'")
