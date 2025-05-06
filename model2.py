@@ -1,3 +1,5 @@
+"""Model file"""
+
 import folium
 from folium import IFrame
 from folium import plugins

@@ -1,16 +1,17 @@
 import os
 import sys
-from controller2 import Inter
-from controller2 import GameController
-
-from view2 import GameUI
-from model2 import 
+from controller2 import InteractiveWidgets
+from view2 import GameUI, GamePins, GameRunner
+from model2 import Setup, Stats
 
 
 def main():
     try:
         # Initialize everything
-        controller = GameController()
+        controller = InteractiveWidgets()
+        GamePins = GamePins()
+        GameUI = GameUI()
+        GameRunner = GameRunner()
 
         # Start first round
         controller.start_round()

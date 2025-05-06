@@ -1,3 +1,5 @@
+"""Controller file"""
+
 import random
 import webbrowser
 import os
@@ -24,6 +26,11 @@ class InteractiveWidgets:
         average_score,
         distance,
         coord_input_text,
+        coord_text,
+        score_text,
+        average_score_text,
+        distance_text,
+        guess_confirmed,
     ):
         self._Setup = Setup
         self._Stats = Stats
@@ -32,6 +39,12 @@ class InteractiveWidgets:
         self._average_score = average_score
         self._distance = distance
         self._coord_input_text = coord_input_text
+
+        self._coord_text = coord_text
+        self._score_text = score_text
+        self._average_score_text = average_score_text
+        self._distance_text = distance_text
+        self._guess_confirmed = guess_confirmed
 
     def on_confirm(self):
         """
@@ -114,16 +127,16 @@ class InteractiveWidgets:
         """
         On-click function for "next round" button.
         """
-        self.Setup.start_round()
-        self.score_text = ""
-        self.average_score_text = ""
-        self.distance_text = ""
-        self.guess_confirmed = False
+        self._Setup.start_round()
+        self._score_text = ""
+        self._average_score_text = ""
+        self._distance_text = ""
+        self._guess_confirmed = False
 
-        view.update_display(
-            coord_text,
-            score_text,
-            average_score_text,
-            distance_text,
-            guess_confirmed,
+        GameUI_update_display(
+            self._coord_text,
+            self._score_text,
+            self._average_score_text,
+            self._distance_text,
+            self._guess_confirmed,
         )

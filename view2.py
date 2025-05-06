@@ -1,3 +1,5 @@
+"""View file"""
+
 import folium
 from folium import IFrame
 import pygame
@@ -149,7 +151,6 @@ class GameUI:
         self._GamePins = GamePins
         self._Setup = Setup
         self._GameUI = GameUI
-        self._Game
 
         self.initialize_pygame()
         self.initialize_ui()
@@ -157,7 +158,7 @@ class GameUI:
         self.score_text = ""
         self.distance_text = ""
         self.coord_file = "funny_dataset/coord.csv"
-        self.images_dir = "funny_dataset/images"
+        self.images_dir = "dataset/coords.csv"
         self.html_path = "map.html"
         coord_input_text = ""
 
@@ -197,7 +198,7 @@ class GameUI:
         }
 
         # Confirm Guess Button
-        confirm_button = Button(
+        self.confirm_button = Button(
             self.screen,
             50,
             700,
@@ -209,7 +210,7 @@ class GameUI:
         )
 
         # Next Round Button
-        next_button = Button(
+        self.next_button = Button(
             self.screen,
             300,
             700,
@@ -251,10 +252,10 @@ class GameUI:
                     raise ValueError("Invalid coordinate ranges")
 
                 # Save guess
-                self.GamePins.guess_coords = [lat, lon]
+                self._GamePins.guess_coords = [lat, lon]
 
                 # This will handle the distance calculation and marker drawing
-                distance, score = self.Setup.handle_guess()
+                distance, score = self._Setup.handle_guess()
 
                 coord_input_text = f"Guess: ({lat:.4f}, {lon:.4f})"
                 self.score_text = f"Score: {score}"
@@ -294,6 +295,11 @@ class GameUI:
         coords_box,
         coords_color,
         coord_input_text,
+        coord_text,
+        score_text,
+        average_score_text,
+        distance_text,
+        guess_confirmed,
     ):
         # Clear the screen
         self.screen.fill(self.background_color)
@@ -337,3 +343,23 @@ class GameUI:
 
         # --- Update Display ---
         pygame.display.flip()
+
+    @property
+    def coord_text(self):
+        return self._coord_text
+
+    @property
+    def score_text(self):
+        return self._score_text
+
+    @property
+    def average_score_text(self):
+        return self._average_score_text
+
+    @property
+    def distance_text(self):
+        return self._distance_text
+
+    @property
+    def guess_confirmed(self):
+        return self._guess_confirmed
