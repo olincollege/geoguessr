@@ -30,20 +30,22 @@ class Setup:
         Stats: all methods and attributes from Stats class.
     """
 
-    def __init__(
-        self, score, Stats, GamePins, guess_coords, distance, average_score
-    ):
+    def __init__(self, Stats, GamePins, guess_coords):
         self._Stats = Stats
         self._GamePins = GamePins
 
-        # other funciton
-        self.correct_location = None
+        # Coordinates
         self._guess_coords = guess_coords
+        self._correct_location = None
 
-        self._score = score
-        self._distance = distance
-        self._average_score = average_score
-        # from this function
+        # Scoreboard stats
+        self._score = None
+        self._distance = None
+        self._average_score = None
+
+        # Image and HTML metadata
+        self._image_index = 0
+        self._image_path = ""
         self.images_dir = "dataset/images"
         self.coord_file = "dataset/coords.csv"
         self.html_path = "map.html"
@@ -51,26 +53,20 @@ class Setup:
     def start_round(self):
         """
         Initialize new round with random location (and corresponding image).
-
-        Returns:
-            image_path (f str): the path to the randomly generated image for the new round.
         """
-        current_round = 0
-        current_round += 1
-
         # Clear the map
         self._GamePins.clear_markers()
         # Generate new random image
         images = os.listdir(self.images_dir)
-        image_index = random.randint(0, len(images) - 1)
-        image_path = f"dataset/images/{image_index}.png"
+        self._image_index = random.randint(0, len(images) - 1)
+        self._image_path = os.path.join(
+            self.images_dir, f"{self._image_index}.png"
+        )
         # Set correct location
-        self.set_correct_location(image_index)
+        self.set_correct_location(self._image_index)
         # Generate new map
         self.map.save(self.html_path)
         webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
-
-        return image_path
 
     def set_correct_location(self, image_index):
         """
@@ -89,10 +85,12 @@ class Setup:
             with open(self.coord_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
             # Check that image is in range
-            if image_index >= len(lines):
-                raise IndexError(f"Image index {image_index} out of range")
+            if self._image_index >= len(lines):
+                raise IndexError(
+                    f"Image index {self._image_index} out of range"
+                )
             # Parse through line and split into separate coordinates
-            line = lines[image_index].strip()
+            line = lines[self.image_index].strip()
             parts = line.split(",")
             # Check that coordinates are split into 2 parts
             if len(parts) < 2:
@@ -105,16 +103,7 @@ class Setup:
             print(f"❌ Error setting correct location: {e}")
             raise
 
-    def get_current_image_path(self, image_index):
-        """
-        Get path of current round's image.
-
-        Returns:
-            String containing image path.
-        """
-        return os.path.join(self.images_dir, f"{image_index}.png")
-
-    def handle_guess(self, image_index, distance, average_score):
+    def handle_guess(self):
         """
         Process player's guess and return scoreboard stats.
 
@@ -134,20 +123,30 @@ class Setup:
         #     raise ValueError("Correct location not set")
 
         # Compute stats
-        distance = self._Stats.calculate_distance(
-            self._guess_coords, self.correct_location
+        self.distance = self._Stats.calculate_distance(
+            self.guess_coords, self.correct_location
         )
-        score = self._Stats.round_score(distance)
+        self.score = self._Stats.round_score(self.distance)
         self._Stats.get_average_score()
 
-        average_score = self._Stats.get_average_score()
+        self.average_score = self._Stats.get_average_score()
 
         # Draw the correct marker (which will also draw the line)
         self._GamePins.draw_correct_marker(
-            self.coord_file, self.images_dir, image_index
+            self.coord_file, self.images_dir, self.image_index
         )
 
-        return distance, score, average_score
+    @property
+    def image_index(self):
+        return self._image_index
+
+    @property
+    def correct_location(self):
+        return self._correct_location
+
+    @property
+    def guess_coords(self):
+        return self._guess_coords
 
     @property
     def distance(self):
@@ -177,16 +176,24 @@ class Stats:
         self._guess_coords = guess_coords
         self._actual_coords = actual_coords
 
-    def calculate_distance(self, guess_coords, actual_coords):
+    @property
+    def next_guess(self):
+        return self._guess_coords
+
+    @property
+    def next_actual(self):
+        return self._actual_coords
+
+    def calculate_distance(self):
         """
-        A static method calculating distance between the guess and answer.
+        A static method calculating distance in meters between the guess and answer.
 
         Returns:
             distance (int): the distance between the guess and the answer.
         """
         # Haversine formula for distance calculation
-        lat1, lon1 = radians(guess_coords[0]), radians(guess_coords[1])
-        lat2, lon2 = radians(actual_coords[0]), radians(actual_coords[1])
+        lat1, lon1 = radians(self.next_guess[0]), radians(self.next_guess[1])
+        lat2, lon2 = radians(self.next_actual[0]), radians(self.next_actual[1])
 
         dlat = lat2 - lat1
         dlon = lon2 - lon1
@@ -199,11 +206,7 @@ class Stats:
 
         return distance
 
-    # @property
-    # def guess_coords(self):
-    #     return self._guess_coords
-
-    def round_score(self, distance_meters):
+    def round_score(self, distance):
         """
         Computes round score on a scale of 0 to 5000 points.
 
@@ -213,7 +216,7 @@ class Stats:
         HIGHEST_SCORE = 5000
         SIGMA = 250000  # Width of bell curve
         score = round(
-            HIGHEST_SCORE * math.exp(-0.5 * pow((distance_meters / SIGMA), 2))
+            HIGHEST_SCORE * math.exp(-0.5 * pow((distance / SIGMA), 2))
         )
         return score
 
@@ -226,7 +229,7 @@ class Stats:
         """
         if not self.rounds:
             return 0
-        dist = self.calculate_distance(self._guess_coords, self._actual_coords)
+        dist = self.calculate_distance()
         score = self.round_score(dist)
         self.rounds.append(score)
 
