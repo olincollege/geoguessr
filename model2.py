@@ -29,7 +29,7 @@ class SetUp:
         Stats: all methods and attributes from Stats class.
     """
 
-    def __init__(self):
+    def __init__(self, guess_coords):
         # Initiating rounds
         self.current_round = 0
         self.image_index = 0
@@ -37,7 +37,7 @@ class SetUp:
         self.coord_file = "dataset/coords.csv"
         self.html_path = "map.html"
         self.correct_location = None
-        self.guess_coords = None
+        self.guess_coords = guess_coords
 
         self.Marker = Marker()
         self.Stats = Stats(self.guess_coords, self.correct_location)

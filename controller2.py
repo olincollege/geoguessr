@@ -69,9 +69,9 @@ class InteractiveWidgets:
                 raise ValueError("Invalid coordinate ranges")
 
             # Save guess coordinates to class Setup
-            self.Setup.guess_coords = [lat, lon]
+            input_coords = [lat, lon]
             # Scoreboard stats calculations
-            distance, score, average_score = self.Setup.handle_guess()
+            self.Setup.handle_guess(input_coords)
 
             coord_text = f"Guess: ({lat:.4f}, {lon:.4f})"
             score_text = f"{score} points"
