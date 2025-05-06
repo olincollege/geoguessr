@@ -1,13 +1,17 @@
 import os
 import sys
-from controller import GameController
-from view import GameUI
+from controller2 import Inter
+from controller2 import GameController
+
+from view2 import GameUI
+from model2 import 
 
 
 def main():
     try:
-        # Initialize controller (no arguments needed)
+        # Initialize everything
         controller = GameController()
+
         # Start first round
         controller.start_round()
         # Initialize UI

@@ -9,10 +9,9 @@ from math import radians, sin, cos, sqrt, atan2
 import traceback
 import random
 import webbrowser
-from view import Marker
 
 
-class SetUp:
+class Setup:
     """
     Setting up each round of the Geoguessr game.
 
@@ -29,27 +28,47 @@ class SetUp:
         Stats: all methods and attributes from Stats class.
     """
 
-    def __init__(self, guess_coords):
-        # Initiating rounds
-        self.current_round = 0
-        self.image_index = 0
+    def __init__(
+        self, score, Stats, GamePins, guess_coords, distance, average_score
+    ):
+        self._Stats = Stats
+        self._GamePins = GamePins
+
+        # other funciton
+        self.correct_location = None
+        self._guess_coords = guess_coords
+
+        self._score = score
+        self._distance = distance
+        self._average_score = average_score
+        # from this function
         self.images_dir = "dataset/images"
         self.coord_file = "dataset/coords.csv"
         self.html_path = "map.html"
-        self.correct_location = None
-        self.guess_coords = guess_coords
 
-        self.Marker = Marker()
-        self.Stats = Stats(self.guess_coords, self.correct_location)
-
-    def get_current_image_path(self):
+    def start_round(self):
         """
-        Get path of current round's image.
+        Initialize new round with random location (and corresponding image).
 
         Returns:
-            String containing image path.
+            image_path (f str): the path to the randomly generated image for the new round.
         """
-        return os.path.join(self.images_dir, f"{self.image_index}.png")
+        current_round = 0
+        current_round += 1
+
+        # Clear the map
+        self._GamePins.clear_markers()
+        # Generate new random image
+        images = os.listdir(self.images_dir)
+        image_index = random.randint(0, len(images) - 1)
+        image_path = f"dataset/images/{image_index}.png"
+        # Set correct location
+        self.set_correct_location(image_index)
+        # Generate new map
+        self.map.save(self.html_path)
+        webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
+
+        return image_path
 
     def set_correct_location(self, image_index):
         """
@@ -84,32 +103,16 @@ class SetUp:
             print(f"❌ Error setting correct location: {e}")
             raise
 
-    def start_round(self):
+    def get_current_image_path(self, image_index):
         """
-        Initialize new round with random location (and corresponding image).
+        Get path of current round's image.
 
         Returns:
-            image_path (f str): the path to the randomly generated image for the new round.
+            String containing image path.
         """
-        self.current_round += 1
+        return os.path.join(self.images_dir, f"{image_index}.png")
 
-        # Clear the map
-        self.Marker.clear_markers()
-        # Generate new random image
-        images = os.listdir(self.images_dir)
-        self.image_index = random.randint(0, len(images) - 1)
-        image_path = f"dataset/images/{self.image_index}.png"
-        # Set correct location
-        self.set_correct_location(self.image_index)
-        # Generate new map
-        self.Marker.map.save(self.html_path)
-        webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
-
-        return image_path
-
-        # self.Marker.draw_guess_marker()
-
-    def handle_guess(self):
+    def handle_guess(self, image_index, distance, average_score):
         """
         Process player's guess and return scoreboard stats.
 
@@ -122,32 +125,39 @@ class SetUp:
             score (int): the current round score.
             average_score (int): the average score of the played rounds.
         """
-        if not self.Marker.guess_coords:
+        if not self._guess_coords:
             raise ValueError("No guess coordinates set")
 
         # if not self.Marker.correct_location:
         #     raise ValueError("Correct location not set")
 
-        try:
-            # Compute stats
-            distance = self.Stats.calculate_distance(
-                self.guess_coords, self.correct_location
-            )
-            score = self.Stats.round_score(distance)
-            self.Stats.get_average_score()
+        # Compute stats
+        distance = self._Stats.calculate_distance(
+            self._guess_coords, self.correct_location
+        )
+        score = self._Stats.round_score(distance)
+        self._Stats.get_average_score()
 
-            average_score = self.Stats.get_average_score()
+        average_score = self._Stats.get_average_score()
 
-            # Draw the correct marker (which will also draw the line)
-            self.Marker.draw_correct_marker(
-                self.coord_file, self.images_dir, self.image_index
-            )
+        # Draw the correct marker (which will also draw the line)
+        self._GamePins.draw_correct_marker(
+            self.coord_file, self.images_dir, image_index
+        )
 
-            return distance, score, average_score
+        return distance, score, average_score
 
-        except Exception as e:
-            print(f"❌ Error handling guess: {e}")
-            raise
+    @property
+    def distance(self):
+        return self._distance
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def average_score(self):
+        return self._average_score
 
 
 class Stats:
@@ -162,27 +172,10 @@ class Stats:
 
     def __init__(self, guess_coords, actual_coords):
         self.rounds = []
-        self.guess_coords = guess_coords
-        self.actual_coords = actual_coords
+        self._guess_coords = guess_coords
+        self._actual_coords = actual_coords
 
-    def get_average_score(self):
-        """
-        Calculate the average score across all rounds that have been played so far.
-
-        Return:
-            average_score (int): the player's average score.
-        """
-        if not self.rounds:
-            return 0
-        dist = self.calculate_distance(self.guess_coords, self.actual_coords)
-        score = self.round_score(dist)
-        self.rounds.append(score)
-
-        average_score = sum(self.rounds // len(self.rounds))
-        return average_score
-
-    @staticmethod
-    def calculate_distance(guess_coords, actual_coords):
+    def calculate_distance(self, guess_coords, actual_coords):
         """
         A static method calculating distance between the guess and answer.
 
@@ -204,8 +197,11 @@ class Stats:
 
         return distance
 
-    @staticmethod
-    def round_score(distance_meters):
+    # @property
+    # def guess_coords(self):
+    #     return self._guess_coords
+
+    def round_score(self, distance_meters):
         """
         Computes round score on a scale of 0 to 5000 points.
 
@@ -218,3 +214,19 @@ class Stats:
             HIGHEST_SCORE * math.exp(-0.5 * pow((distance_meters / SIGMA), 2))
         )
         return score
+
+    def get_average_score(self):
+        """
+        Calculate the average score across all rounds that have been played so far.
+
+        Return:
+            average_score (int): the player's average score.
+        """
+        if not self.rounds:
+            return 0
+        dist = self.calculate_distance(self._guess_coords, self._actual_coords)
+        score = self.round_score(dist)
+        self.rounds.append(score)
+
+        average_score = sum(self.rounds // len(self.rounds))
+        return average_score
