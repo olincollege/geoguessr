@@ -24,6 +24,9 @@ class SetUp:
         html_path (str): the path to the map's html file.
         correct_location (list): the coordinates to the actual location of the round's image.
         guess_coords (list): the coordinates to the guess location of the round's image.
+
+        Marker: all methods and attributes from Marker class.
+        Stats: all methods and attributes from Stats class.
     """
 
     def __init__(self):
@@ -108,12 +111,16 @@ class SetUp:
 
     def handle_guess(self):
         """
-        Process player's guess and return distance and score
+        Process player's guess and return scoreboard stats.
 
         Raises:
             ValueError: Guess coordinates not set.
             Exception: Unexpected errors during processing.
 
+        Returns:
+            distance (int): the distance between the guess and actual coordinates.
+            score (int): the current round score.
+            average_score (int): the average score of the played rounds.
         """
         if not self.Marker.guess_coords:
             raise ValueError("No guess coordinates set")
