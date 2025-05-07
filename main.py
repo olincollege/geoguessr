@@ -1,35 +1,28 @@
-import os
+"""main file of our game"""
+
 import sys
-from controller2 import InteractiveWidgets
-from view2 import GameUI, GamePins, GameRunner
-from model2 import Setup, Stats
+import pygame
 
+from model import GeoGuessr
+from view import View
+from controller import Controller
 
-def main():
-    try:
-        # Initialize everything
-        controller = InteractiveWidgets()
-        GamePins = GamePins()
-        GameUI = GameUI()
-        GameRunner = GameRunner()
+# Initialize everything
+pygame.init()
+model = GeoGuessr()
+view = View(model)
+controller = Controller(view, model)
 
-        # Start first round
-        controller.start_round()
-        # Initialize UI
-        ui = GameUI(controller)
-        # Run game
-        ui.run()
+while True:
+    # run game
+    if model.mode == "guess":
+        view.draw_guess()
+        controller.get_user_input()
+    elif model.mode == "score":
+        view.draw_score()
+    else:
+        view.draw_error()
 
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-        print("Please ensure dataset directory exists with:")
-        print("- dataset/coord.csv")
-        print("- dataset/images/*.jpg")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
+    controller.button_events()
 
-
-if __name__ == "__main__":
-    main()
+    pygame.display.update()

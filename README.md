@@ -16,7 +16,7 @@ This game recreates the Geoguessr experience with:
 1. Clone the repository by running the following command in the terminal:
 
     ```
-    git@github.com:olincollege/geoguessr.git
+    git clone git@github.com:olincollege/geoguessr.git
     ```
 
 2. Navigate into the directory:

@@ -1,95 +1,63 @@
-"""Controller file"""
+"""Controller class of Model, View Controller architecture"""
 
-import random
-import webbrowser
-import os
-import traceback
+import sys
+import pygame
 
 
-class InteractiveWidgets:
-    """
-    Connects inputs from interactive widgets (textbox, buttons, markers) to the model.
+class Controller:
+    def __init__(self, view, model):
+        """initialize view"""
 
-    Attributes:
-        coord_input_text (str): the player's input in the pygame textbox.
-        Setup: all methods and attributes from class Setup.
-        Stats: all methods and attributes from class Stats.
-    """
+        self._view = view
+        self._model = model
 
-    def __init__(
-        self,
-        Setup,
-        GameUI,
-        coord_input_text,
-    ):
-        self._Setup = Setup
-        self._GameUI = GameUI
-        self._coord_input_text = coord_input_text
-        self._coord_text = ""
-        # self._score_text = ""
-        # self._average_score_text = ""
-        # self._distance_text = distance_text
-        self._guess_confirmed = False
+    def button_events(self):
+        """tracks for the two buttons"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-    @property
-    def coord_input_text(self):
-        return self._coord_input_text
+            if event.type == pygame.MOUSEBUTTONDOWN:
 
-    @property
-    def guess_confirmed(self):
-        return self._guess_confirmed
+                if (
+                    self._view.next_round_button.collidepoint(event.pos)
+                    and self._model.mode == "score"
+                ):
+                    self._model.next_guess()
+                if (
+                    self._view.error_button.collidepoint(event.pos)
+                    and self._model.mode == "error"
+                ):
+                    self._model.no_error()
 
-    def on_confirm(self):
-        """
-        On-click function for "confirm guess" button.
+    def get_user_input(self):
+        """determines if the box is pressed and if
+        the user is putting in text."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-        Raises:
-            ValueError: If input is missing, two numbers aren't given, or
-            coordinates are out of range.
-            Exception: Unexpected errors during processing.
-        """
-        # Should change to be if TRUE since guess_confirmed should change
-        if not self.guess_confirmed:
-            # try:
-            # Define the input_text
-            input_text = self.coord_input_text.strip()
-            print(f"[DEBUG] Raw input: '{input_text}'")
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if (
+                    self._view.input_rect.collidepoint(event.pos)
+                    and self._model.mode == "score"
+                ):
+                    self._view.toggle_input_rect()
+                elif (
+                    self._view.submit_button.collidepoint(event.pos)
+                    and self._model.mode == "guess"
+                ):
+                    try:
+                        self._model.get_score()
+                    except (ValueError, IndexError):
+                        self._model.error()
+                else:
+                    self._view.toggle_input_rect()
 
-            # Check that input_text was entered
-            if not input_text:
-                raise ValueError("No coordinates entered.")
-
-            # Parse input_text for guess coordinates
-            parts = [p.strip() for p in input_text.replace(" ", "").split(",")]
-            if len(parts) < 2:
-                parts = input_text.split()
-            # Print out parsed guess coordinates
-            print(f"[DEBUG] Parsed parts: {parts}")
-
-            # Check that parsed coordinates have two parts (lat & lon)
-            if len(parts) != 2:
-                raise ValueError(
-                    "Please enter exactly two numbers (lat and lon)."
-                )
-
-            # Convert lat and lon to float types
-            lat = float(parts[0])
-            lon = float(parts[1])
-
-            # Validate coordinate ranges
-            if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
-                raise ValueError("Invalid coordinate ranges")
-
-            # Save guess coordinates to class Setup
-            input_coords = [lat, lon]
-            # # Scoreboard Stats calculations
-            self._Setup.handle_guess(input_coords)
-
-            self.guess_confirmed = True
-
-    def on_next_round(self):
-        """
-        On-click function for "next round" button.
-        """
-        self._Setup.start_round()
-        self.coord_input_text = ""
+            if self._view.input_active and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self._model.delete_user_text()
+                else:
+                    self._model.add_user_text(event.unicode)

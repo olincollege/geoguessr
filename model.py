@@ -1,237 +1,218 @@
-"""Model file"""
+"""Model of Model, View, Controller Architecture"""
 
-import folium
-from folium import IFrame
-from folium import plugins
-from branca.element import MacroElement
-from jinja2 import Template
-import math
-import os
-from math import radians, sin, cos, sqrt, atan2
-import traceback
+from math import radians, sin, cos, sqrt, atan2, exp
 import random
-import webbrowser
 
 
-class Setup:
+class GeoGuessr:
     """
-    Setting up each round of the Geoguessr game.
-
-    Attributes:
-        current_round (int): the current round number.
-        image_index (int):  the index of the round's generated image.
-        images_dir (str): the path to the images subfolder in dataset.
-        coord_file (str): the path to the coords.csv file.
-        html_path (str): the path to the map's html file.
-        correct_location (list): the coordinates to the actual location of the round's image.
-        guess_coords (list): the coordinates to the guess location of the round's image.
-
-        Marker: all methods and attributes from Marker class.
-        Stats: all methods and attributes from Stats class.
+    Updates state of Geoguessr based on which round the player is on,
+    whether a guess has been made, the stats of that round, and setup
+    for the next round.
     """
 
-    def __init__(self, Stats, GamePins, guess_coords):
-        self._Stats = Stats
-        self._GamePins = GamePins
-
-        # Coordinates
-        self._guess_coords = guess_coords
-        self._correct_location = None
-
-        # Scoreboard stats
-        self._score = None
-        self._distance = None
-        self._average_score = None
-
-        # Image and HTML metadata
-        self._image_index = 0
+    def __init__(self):
+        self._num_rounds = 0
+        self._mode = "guess"
         self._image_path = ""
-        self.images_dir = "dataset/images"
-        self.coord_file = "dataset/coords.csv"
-        self.html_path = "map.html"
+        self._image_num = 0
+        self._average_score = 0
+        self._current_score = 0
+        self._guess_lat = 0
+        self._guess_lon = 0
+        self._correct_lat = 0
+        self._correct_lon = 0
+        self._guess_lat_pixels = 0
+        self._guess_lon_pixels = 0
+        self._correct_lat_pixels = 0
+        self._correct_lon_pixels = 0
+        self._distance = 0
+        self._user_text = ""
 
-    def start_round(self):
-        """
-        Initialize new round with random location (and corresponding image).
-        """
-        # Clear the map
-        self._GamePins.clear_markers()
-        # Generate new random image
-        images = os.listdir(self.images_dir)
-        self._image_index = random.randint(0, len(images) - 1)
-        self._image_path = os.path.join(
-            self.images_dir, f"{self._image_index}.png"
+    def add_user_text(self, user_input):
+        """add user text"""
+        self._user_text += user_input
+
+    def delete_user_text(self):
+        """delete user text"""
+        self._user_text = self._user_text[:-1]
+
+    ###### this one is important
+    def get_score(self):
+        """changes in model after the user makes a guess"""
+        user_input = self._user_text.split()
+        self._guess_lat = float(user_input[0])
+        self._guess_lon = float(user_input[1])
+        self.get_pixels()
+        self.calculate_distance()
+        self.calculate_score()
+        self.calculate_average_score()
+        self._user_text = ""
+        self._mode = "score"
+
+    def get_pixels(self):
+        """converts coordinates to pixels"""
+        MAP_HORIZONTAL_PIXELS = 2042
+        MAP_HORIZONTAL_SECTIONS = 24
+        MAP_VERTICAL_PIXELS = 1020
+        MAP_VERTICAL_SECTIONS = 12
+        LAT_RANGE = 180
+        LON_RANGE = 360
+        SCALE_FACTOR = 1 / 2
+
+        pixels_per_lat = (
+            SCALE_FACTOR
+            * (MAP_HORIZONTAL_SECTIONS / LON_RANGE)
+            * (MAP_HORIZONTAL_PIXELS * MAP_HORIZONTAL_SECTIONS)
         )
-        # Set correct location
-        self.set_correct_location(self._image_index)
-        # Generate new map
-        self.map.save(self.html_path)
-        webbrowser.open(f"file://{os.path.abspath(self.html_path)}", new=0)
-
-    def set_correct_location(self, image_index):
-        """
-        Set correct location of image generated for given round.
-
-        Args:
-            image_index (int): index of randomly generated round image.
-
-        Raises:
-            IndexError: Image index out of range.
-            ValueError: Coordinates not split into two parts.
-            Exception: Unexpected errors during processing.
-        """
-        try:
-            # Open coords.csv file and read through lines
-            with open(self.coord_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            # Check that image is in range
-            if self._image_index >= len(lines):
-                raise IndexError(
-                    f"Image index {self._image_index} out of range"
-                )
-            # Parse through line and split into separate coordinates
-            line = lines[self.image_index].strip()
-            parts = line.split(",")
-            # Check that coordinates are split into 2 parts
-            if len(parts) < 2:
-                raise ValueError(f"Invalid coordinate format: {line}")
-            # Define latitude and longitude tuple
-            lat, lon = map(float, parts[:2])
-            self.correct_location = [lat, lon]
-        # Check for other errors
-        except Exception as e:
-            print(f"❌ Error setting correct location: {e}")
-            raise
-
-    def handle_guess(self):
-        """
-        Process player's guess and return scoreboard stats.
-
-        Raises:
-            ValueError: Guess coordinates not set.
-            Exception: Unexpected errors during processing.
-
-        Returns:
-            distance (int): the distance between the guess and actual coordinates.
-            score (int): the current round score.
-            average_score (int): the average score of the played rounds.
-        """
-        if not self._guess_coords:
-            raise ValueError("No guess coordinates set")
-
-        # if not self.Marker.correct_location:
-        #     raise ValueError("Correct location not set")
-
-        # Compute stats
-        self.distance = self._Stats.calculate_distance(
-            self.guess_coords, self.correct_location
-        )
-        self.score = self._Stats.round_score(self.distance)
-        self._Stats.get_average_score()
-
-        self.average_score = self._Stats.get_average_score()
-
-        # Draw the correct marker (which will also draw the line)
-        self._GamePins.draw_correct_marker(
-            self.coord_file, self.images_dir, self.image_index
+        pixels_per_lon = (
+            SCALE_FACTOR
+            * (MAP_VERTICAL_SECTIONS / LAT_RANGE)
+            * (MAP_VERTICAL_PIXELS * MAP_VERTICAL_SECTIONS)
         )
 
-    @property
-    def image_index(self):
-        return self._image_index
-
-    @property
-    def correct_location(self):
-        return self._correct_location
-
-    @property
-    def guess_coords(self):
-        return self._guess_coords
-
-    @property
-    def distance(self):
-        return self._distance
-
-    @property
-    def score(self):
-        return self._score
-
-    @property
-    def average_score(self):
-        return self._average_score
-
-
-class Stats:
-    """
-    Computing metrics for scoreboard tracking player's accuracy of guesses.
-
-    Attributes:
-        rounds (list): saved score for every round played.
-        guess_coords (list): player's guess coordinates.
-        actual_coords (list): location's actual coordinates.
-    """
-
-    def __init__(self, guess_coords, actual_coords):
-        self.rounds = []
-        self._guess_coords = guess_coords
-        self._actual_coords = actual_coords
-
-    @property
-    def next_guess(self):
-        return self._guess_coords
-
-    @property
-    def next_actual(self):
-        return self._actual_coords
+        self._guess_lat_pixels = self._guess_lat * pixels_per_lat
+        self._guess_lon_pixels = self._guess_lon * pixels_per_lon
+        self._correct_lat_pixels = self._correct_lat * pixels_per_lat
+        self._correct_lon_pixels = self._correct_lon * pixels_per_lon
 
     def calculate_distance(self):
         """
-        A static method calculating distance in meters between the guess and answer.
+        A method calculating distance between the guess and answer by
+        converting the difference in latitude and longitude
+        to actual meters.
+
+        Args:
+            lat
 
         Returns:
-            distance (int): the distance between the guess and the answer.
+            distance (int): the distance between the guess and the
+            answer.
         """
         # Haversine formula for distance calculation
-        lat1, lon1 = radians(self.next_guess[0]), radians(self.next_guess[1])
-        lat2, lon2 = radians(self.next_actual[0]), radians(self.next_actual[1])
+        lat1, lon1 = radians(self._guess_lat), radians(self._guess_lon)
+        lat2, lon2 = radians(self._correct_lat), radians(self._correct_lon)
 
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
+        delta_lat = lat2 - lat1
+        delta_lon = lon2 - lon1
 
-        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        a = (
+            sin(delta_lat / 2) ** 2
+            + cos(lat1) * cos(lat2) * sin(delta_lon / 2) ** 2
+        )
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-        RADIUS_OF_EARTH = 6371000  # meters
-        distance = RADIUS_OF_EARTH * c
+        earth_radius = 6371000  # meters
+        self._distance = earth_radius * c
 
-        return distance
-
-    def round_score(self, distance):
+    def calculate_score(self):
         """
-        Computes round score on a scale of 0 to 5000 points.
-
-        Returns:
-            score (int): the round score.
+        Gets the score based on how accurate the user's guess is. The
+        points range from 0 to 5000 points, with the score increasing
+        as the distance between a user's guess and the answer
+        decreases. This scoring follows a Gaussian distribution.
         """
         HIGHEST_SCORE = 5000
-        SIGMA = 250000  # Width of bell curve
-        score = round(
-            HIGHEST_SCORE * math.exp(-0.5 * pow((distance / SIGMA), 2))
+        SIGMA = 250000
+        self._current_score = round(
+            HIGHEST_SCORE * exp(-0.5 * pow((self._distance / SIGMA), 2))
         )
-        return score
 
-    def get_average_score(self):
+    def calculate_average_score(self):
+        """calculate average score"""
+        previous_total = self._average_score * self._num_rounds
+        new_total = previous_total + self._current_score
+        self._num_rounds += 1
+        self._average_score = new_total / self._num_rounds
+
+    #### this one is important
+    def next_guess(self):
         """
-        Calculate the average score across all rounds that have been played so far.
-
-        Return:
-            average_score (int): the player's average score.
+        Generates the next image num and correct
+        coordinates so that the user can guess
+        again.
         """
-        if not self.rounds:
-            return 0
-        dist = self.calculate_distance()
-        score = self.round_score(dist)
-        self.rounds.append(score)
+        self.get_image_path()
+        self.get_correct_coords()
+        self._mode = "guess"
 
-        average_score = sum(self.rounds // len(self.rounds))
-        return average_score
+    def get_image_path(self):
+        """
+        finds a random image path
+        """
+        min_image = 0
+        max_image = 9999
+        self._image_num = random.randint(min_image, max_image)
+        self._image_path = f"dataset/images/{self._image_num}.png"
+
+    def get_correct_coords(self):
+        """gets the correct lat lon coords given the image number"""
+        # Open coords.csv file and read through lines
+        with open("dataset/coords.csv", "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        # Check that image is in range
+        if self._image_num >= len(lines):
+            raise IndexError(f"Image index {self._image_num} out of range")
+        # parse lines and split into coordinates
+        line = lines[self._image_num].strip()
+        parts = line.split(",")
+        # define correct lat and lon
+        self._correct_lat = float(parts[0])
+        self._correct_lon = float(parts[1])
+
+    def error(self):
+        self._mode = "error"
+        self._user_text = ""
+
+    def no_error(self):
+        self._mode = "guess"
+
+    @property
+    def mode(self):
+        """returns mode"""
+        return self._mode
+
+    @property
+    def image_path(self):
+        """returns image path"""
+        return self._image_path
+
+    @property
+    def distance(self):
+        """returns distance"""
+        return self._distance
+
+    @property
+    def current_score(self):
+        """return current score"""
+        return self._current_score
+
+    @property
+    def average_score(self):
+        """returns average score"""
+        return self._average_score
+
+    @property
+    def user_text(self):
+        """returns user text"""
+        return self._user_text
+
+    @property
+    def guess_lat_pixels(self):
+        """returns guess lat pixels"""
+        return self._guess_lat_pixels
+
+    @property
+    def guess_lon_pixels(self):
+        """returns guess lat pixels"""
+        return self._guess_lon_pixels
+
+    @property
+    def correct_lat_pixels(self):
+        """returns guess lat pixels"""
+        return self._correct_lat_pixels
+
+    @property
+    def correct_lon_pixels(self):
+        """returns guess lat pixels"""
+        return self._correct_lon_pixels
