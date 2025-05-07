@@ -20,7 +20,7 @@ class View:
         self._blue = (0, 0, 100)
         self._green = (0, 100, 0)
         self._red = (100, 0, 0)
-        self._cream = (255, 253, 208)
+        self._gray = (200, 200, 200)
 
         # buttons
         self._submit_button = pygame.Rect((325, 575), (250, 50))
@@ -33,19 +33,29 @@ class View:
         self._map = pygame.image.load(self._map_path)
 
         # scoreboard
-        self._scoreboard = pygame.Surface((510, 80))
+        self._scoreboard_width = 1021  # same width as the map
+        self._scoreboard_height = 80
+        self._scoreboard = pygame.Surface(
+            (self._scoreboard_width, self._scoreboard_height)
+        )
         self._scoreboard_title = self._medium_font.render(
             "SCOREBOARD", True, (0, 0, 0)
         )
+        self._stats_text = self._small_font.render(
+            "", True, (0, 0, 0)
+        )  # updated each time
         self._score_text = ""
         self._average_score_text = ""
         self._distance_text = ""
-        self._stats_text = self._small_font.render(
-            "",
-            True,
-            (0, 0, 0),
+        self._distance_surface = self._small_font.render(
+            self._distance_text, True, (0, 0, 0)
         )
-        print(self._stats_text)
+        self._score_surface = self._small_font.render(
+            self._distance_text, True, (0, 0, 0)
+        )
+        self._average_surface = self._small_font.render(
+            self._distance_text, True, (0, 0, 0)
+        )
 
         # image
         self._image_size = (600, 600)
@@ -53,8 +63,8 @@ class View:
 
         # user input box
         self._passive_color = (50, 50, 50)
-        self._active_color = (255, 182, 193)
-        self._input_rect = pygame.Rect((325, 520), (300, 50))
+        self._active_color = (250, 250, 250)
+        self._input_rect = pygame.Rect((325, 520), (300, 45))
         self._input_active = False
 
     def draw_guess(self):
@@ -64,12 +74,12 @@ class View:
         self.draw_map()
         self.draw_submit_button()
         self.draw_input_rect()
-        text = (
-            "write ur guess in box. pink is selected. grery is not selected"
-            " .click button to see score"
-        )
-        rendered = self._big_font.render(text, True, (255, 255, 255))
-        self._screen.blit(rendered, (40, 40))
+        # text = (
+        #     "write ur guess in box. pink is selected. grery is not selected"
+        #     " .click button to see score"
+        # )
+        # rendered = self._big_font.render(text, True, (255, 255, 255))
+        # self._screen.blit(rendered, (40, 40))
 
     def draw_score(self):
         self._screen.fill(self._black)
@@ -80,17 +90,17 @@ class View:
         self.draw_line()
         self.draw_scoreboard()
         self.draw_next_round_button()
-        text = f"score: {self._model.average_score} click to play next round"
-        rendered = self._big_font.render(text, True, (255, 255, 255))
-        self._screen.blit(rendered, (40, 40))
+        # text = f"score: {self._model.average_score} click to play next round"
+        # rendered = self._big_font.render(text, True, (255, 255, 255))
+        # self._screen.blit(rendered, (40, 40))
 
     def draw_error(self):
         self._screen.fill(self._black)
         self.draw_error_button()
-        rendered = self._big_font.render(
-            "click to say i read the error message", True, (255, 255, 255)
-        )
-        self._screen.blit(rendered, (40, 40))
+        # rendered = self._big_font.render(
+        #     "click to say i read the error message", True, (255, 255, 255)
+        # )
+        # self._screen.blit(rendered, (40, 40))
 
     def draw_error_button(self):
         pygame.draw.rect(self._screen, (255, 0, 0), self._error_button)
@@ -101,10 +111,10 @@ class View:
         else:
             color = self._passive_color
         text_surface = self._medium_font.render(
-            self._model.user_text, True, (255, 255, 255)
+            self._model.user_text, True, self._black
         )
         self._input_rect.w = max(100, text_surface.get_width() + 5)
-        pygame.draw.rect(self._screen, color, self._input_rect, 6)
+        pygame.draw.rect(self._screen, color, self._input_rect)
         self._screen.blit(
             text_surface, (self._input_rect.x + 2, self._input_rect.y + 2)
         )
@@ -113,7 +123,8 @@ class View:
         self._input_active = not self._input_active
 
     def draw_submit_button(self):
-        pygame.draw.rect(self._screen, self._blue, self._submit_button)
+        color = (255, 0, 0) if self._model.input_error else self._blue
+        pygame.draw.rect(self._screen, color, self._submit_button)
 
     def draw_next_round_button(self):
         pygame.draw.rect(self._screen, self._green, self._next_round_button)
@@ -131,37 +142,39 @@ class View:
 
     def draw_guess_marker(self):
         pygame.draw.circle(
-            self._map,
+            self._screen,
             self._red,
-            (self._model.guess_lon_pixels, self._model.guess_lat_pixels),
-            2,
-            0,
-        )
-        print(
-            f"Guess pixels:{self._model.guess_lon_pixels},"
-            f" {self._model.guess_lat_pixels}"
+            (
+                700 + int(self._model.guess_lon_pixels),  # offset X
+                140 + int(self._model.guess_lat_pixels),  # offset Y
+            ),
+            5,
         )
 
     def draw_correct_marker(self):
         pygame.draw.circle(
             self._screen,
-            self._red,
-            (self._model.correct_lon_pixels, self._model.correct_lat_pixels),
-            2,
-            0,
-        )
-        print(
-            f"Correct pixels:{self._model.correct_lon_pixels},"
-            f" {self._model.correct_lat_pixels}"
+            self._green,
+            (
+                700 + int(self._model.correct_lon_pixels),  # offset X
+                140 + int(self._model.correct_lat_pixels),  # offset Y
+            ),
+            5,
         )
 
     def draw_line(self):
         pygame.draw.line(
             self._screen,
             self._black,
-            (self._model.guess_lon_pixels, self._model.guess_lat_pixels),
-            (self._model.correct_lon_pixels, self._model.correct_lat_pixels),
-            1,
+            (
+                700 + int(self._model.guess_lon_pixels),
+                140 + int(self._model.guess_lat_pixels),
+            ),
+            (
+                700 + int(self._model.correct_lon_pixels),
+                140 + int(self._model.correct_lat_pixels),
+            ),
+            2,
         )
 
     def get_stats_text(self):
@@ -170,25 +183,32 @@ class View:
         self._average_score_text = (
             f"Average Score: {self._model.average_score} points"
         )
-        self._stats_text = self._small_font.render(
-            self._distance_text + self._score_text + self._average_score_text,
-            True,
-            (0, 0, 0),
+        self._distance_surface = self._small_font.render(
+            self._distance_text, True, (0, 0, 0)
         )
-        print(self._stats_text)
+        self._score_surface = self._small_font.render(
+            self._score_text, True, (0, 0, 0)
+        )
+        self._average_surface = self._small_font.render(
+            self._average_score_text, True, (0, 0, 0)
+        )
 
     def draw_scoreboard(self):
         self.get_stats_text()
-        self._scoreboard.fill(self._cream)
-        self._screen.blit(self._scoreboard, (650, 50))
+        self._scoreboard.fill(self._gray)
+        self._screen.blit(self._scoreboard, (700, 50))
 
-        title_rect = self._scoreboard_title.get_rect()
-        title_rect.topleft = (10, 10)
+        # Draw title
+        title_rect = self._scoreboard_title.get_rect(topleft=(10, 5))
         self._scoreboard.blit(self._scoreboard_title, title_rect)
 
-        stats_rect = self._stats_text.get_rect()
-        stats_rect.topleft = (50, 10)
-        self._scoreboard.blit(self._stats_text, stats_rect)
+        # Draw individual stats below title
+        self._scoreboard.blit(self._distance_surface, (10, 50))
+        self._scoreboard.blit(self._score_surface, (400, 50))
+        self._scoreboard.blit(self._average_surface, (700, 50))
+
+        # Finally draw the scoreboard onto the screen
+        self._screen.blit(self._scoreboard, (700, 50))
 
     @property
     def submit_button(self):

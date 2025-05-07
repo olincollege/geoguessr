@@ -1,6 +1,5 @@
 """main file of our game"""
 
-import sys
 import pygame
 
 from model import GeoGuessr
@@ -15,6 +14,7 @@ controller = Controller(view, model)
 
 while True:
     events = pygame.event.get()
+    controller.button_events(events)
     print(f"Current mode: {model.mode}")
 
     if model.mode == "guess":
@@ -24,6 +24,5 @@ while True:
         view.draw_score()
     elif model.mode == "error":
         view.draw_error()
-        model.mode = "guess"
 
     pygame.display.update()
