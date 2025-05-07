@@ -14,10 +14,11 @@ class GeoGuessr:
     def __init__(self):
         self._num_rounds = 0
         self._mode = "guess"
-        self._image_path = ""
+        self._image_path = "dataset/images/9999.png"
         self._image_num = 0
         self._average_score = 0
         self._current_score = 0
+        self._user_text = ""
         self._guess_lat = 0
         self._guess_lon = 0
         self._correct_lat = 0
@@ -27,7 +28,6 @@ class GeoGuessr:
         self._correct_lat_pixels = 0
         self._correct_lon_pixels = 0
         self._distance = 0
-        self._user_text = ""
 
     def add_user_text(self, user_input):
         """add user text"""
@@ -37,38 +37,45 @@ class GeoGuessr:
         """delete user text"""
         self._user_text = self._user_text[:-1]
 
+    def set_guess_coordinates(self, lat, lon):
+        self._guess_lat = lat
+        self._guess_lon = lon
+
     ###### this one is important
     def get_score(self):
         """changes in model after the user makes a guess"""
-        user_input = self._user_text.split()
-        self._guess_lat = float(user_input[0])
-        self._guess_lon = float(user_input[1])
+        # user_input = self._user_text.split()
+        # if len(user_input) != 2:
+        #     self.error()
+
+        # raise ValueError("Need exactly two numbers")
+        # print(f"User input: {user_input}")  # ← DEBUG
+        # self._guess_lat = float(user_input[0])
+        # self._guess_lon = float(user_input[1])
         self.get_pixels()
         self.calculate_distance()
         self.calculate_score()
         self.calculate_average_score()
+        print(
+            f"Switching to score mode with score {self._current_score}"
+        )  # ← DEBUG
         self._user_text = ""
         self._mode = "score"
 
     def get_pixels(self):
         """converts coordinates to pixels"""
-        MAP_HORIZONTAL_PIXELS = 2042
+        MAP_HORIZONTAL_PIXELS = 1021
         MAP_HORIZONTAL_SECTIONS = 24
-        MAP_VERTICAL_PIXELS = 1020
+        MAP_VERTICAL_PIXELS = 510
         MAP_VERTICAL_SECTIONS = 12
         LAT_RANGE = 180
         LON_RANGE = 360
-        SCALE_FACTOR = 1 / 2
 
-        pixels_per_lat = (
-            SCALE_FACTOR
-            * (MAP_HORIZONTAL_SECTIONS / LON_RANGE)
-            * (MAP_HORIZONTAL_PIXELS * MAP_HORIZONTAL_SECTIONS)
+        pixels_per_lat = (MAP_HORIZONTAL_SECTIONS / LON_RANGE) * (
+            MAP_HORIZONTAL_PIXELS * MAP_HORIZONTAL_SECTIONS
         )
-        pixels_per_lon = (
-            SCALE_FACTOR
-            * (MAP_VERTICAL_SECTIONS / LAT_RANGE)
-            * (MAP_VERTICAL_PIXELS * MAP_VERTICAL_SECTIONS)
+        pixels_per_lon = (MAP_VERTICAL_SECTIONS / LAT_RANGE) * (
+            MAP_VERTICAL_PIXELS * MAP_VERTICAL_SECTIONS
         )
 
         self._guess_lat_pixels = self._guess_lat * pixels_per_lat
@@ -159,6 +166,7 @@ class GeoGuessr:
         # define correct lat and lon
         self._correct_lat = float(parts[0])
         self._correct_lon = float(parts[1])
+        print(line, self._correct_lon, self._correct_lat)
 
     def error(self):
         self._mode = "error"

@@ -14,15 +14,16 @@ view = View(model)
 controller = Controller(view, model)
 
 while True:
-    # run game
+    events = pygame.event.get()
+    print(f"Current mode: {model.mode}")
+
     if model.mode == "guess":
         view.draw_guess()
-        controller.get_user_input()
+        controller.get_user_input(events)
     elif model.mode == "score":
         view.draw_score()
-    else:
+    elif model.mode == "error":
         view.draw_error()
-
-    controller.button_events()
+        model.mode = "guess"
 
     pygame.display.update()

@@ -10,10 +10,12 @@ class Controller:
 
         self._view = view
         self._model = model
+        self._guess_lat = 0
+        self._guess_lon = 0
 
-    def button_events(self):
+    def button_events(self, events):
         """tracks for the two buttons"""
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
@@ -25,16 +27,17 @@ class Controller:
                     and self._model.mode == "score"
                 ):
                     self._model.next_guess()
+
                 if (
                     self._view.error_button.collidepoint(event.pos)
                     and self._model.mode == "error"
                 ):
                     self._model.no_error()
 
-    def get_user_input(self):
+    def get_user_input(self, events):
         """determines if the box is pressed and if
         the user is putting in text."""
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
@@ -49,10 +52,21 @@ class Controller:
                     self._view.submit_button.collidepoint(event.pos)
                     and self._model.mode == "guess"
                 ):
-                    try:
-                        self._model.get_score()
-                    except (ValueError, IndexError):
+                    user_input = self._model.user_text.strip().split()
+                    if len(user_input) != 2:
+                        print("Invalid input: not two values")  # Debug
                         self._model.error()
+                    else:
+                        try:
+                            self._guess_lat = float(user_input[0])
+                            self._guess_lon = float(user_input[1])
+                            self._model.set_guess_coordinates(
+                                self._guess_lat, self._guess_lon
+                            )
+                            self._model.get_score()
+                        except ValueError:
+                            print("Invalid input: not numbers")  # Debug
+                            self._model.error()
                 else:
                     self._view.toggle_input_rect()
 
@@ -61,3 +75,13 @@ class Controller:
                     self._model.delete_user_text()
                 else:
                     self._model.add_user_text(event.unicode)
+
+
+# @property
+# def guess_lat(self):
+#     return self._guess_lat
+
+
+# @property
+# def guess_lon(self):
+#     return self._guess_lon
