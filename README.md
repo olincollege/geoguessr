@@ -41,7 +41,7 @@ This game recreates the Geoguessr experience with:
 Run the game with ```main.py```. 
 
 ![alt text](website_screenshots/image.png)
-Click on the gray box to input your guess latitude and longitude (ex. -30.2 40.5).
+Click on the gray box to input your guess latitude and longitude (ex. -30.2 40.5). The red lines on the map intersect at 0 degrees latitude and 0 degrees longitude.
 
 ![alt text](website_screenshots/image-1.png)
 Click on the blue button to submit your guess.
