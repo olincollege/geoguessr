@@ -1,3 +1,5 @@
+"""View of Model, View, Controller Architecture"""
+
 import pygame
 
 
@@ -109,7 +111,7 @@ class View:
 
     def draw_error(self):
         """
-        When the user can see the image and map gives an invalid
+        When the user can see the image and map and gives an invalid
         input.
         """
         self.draw_error_button()

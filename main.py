@@ -1,4 +1,4 @@
-"""main file of our game"""
+"""Main file running game loop"""
 
 import pygame
 
@@ -15,7 +15,6 @@ controller = Controller(view, model)
 while True:
     events = pygame.event.get()
     controller.button_events(events)
-    print(f"Current mode: {model.mode}")
 
     if model.mode == "guess":
         view.draw_guess()

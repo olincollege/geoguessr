@@ -27,9 +27,9 @@ class GeoGuessr:
         on map in pixels.
         guess_lon_pixels (float): converted x coordinate of guess_lat
         on map in pixels.
-        guess_lat_pixels (float): converted y coordinate of correct_lat
+        correct_lat_pixels (float): converted y coordinate of correct_lat
         on map in pixels.
-        guess_lon_pixels (float): converted x coordinate of correct_lat
+        correct_lon_pixels (float): converted x coordinate of correct_lat
         on map in pixels.
         distance (int): distance between player's guess and answer in
         meters.
@@ -38,7 +38,8 @@ class GeoGuessr:
 
     def __init__(self):
         """
-        Initializes necessary attributes for tracking mode and state of score, generated image, mpa, and inputs.
+        Initializes necessary attributes for tracking mode and state of score,
+        generated image, mpa, and inputs.
         """
         self._num_rounds = 0
         self._mode = "guess"
@@ -99,7 +100,6 @@ class GeoGuessr:
         self.calculate_distance()
         self.calculate_score()
         self.calculate_average_score()
-        # print(f"Switching to score mode with score {self._current_score}") # debugging
         self._user_text = ""
         self._mode = "score"
 
@@ -192,8 +192,8 @@ class GeoGuessr:
         """
         with open("dataset/coords.csv", "r", encoding="utf-8") as f:
             lines = f.readlines()
-        if self._image_num >= len(lines):
-            raise IndexError(f"Image index {self._image_num} out of range")
+        while self._image_num >= len(lines):
+            self.get_image_path()
         line = lines[self._image_num].strip()
         parts = line.split(",")
         self._correct_lat = float(parts[0])
@@ -242,11 +242,6 @@ class GeoGuessr:
     def average_score(self):
         """Return average_score instance."""
         return self._average_score
-
-    @property
-    def user_text(self):
-        """Return user_text instance."""
-        return self._user_text
 
     @property
     def guess_lat_pixels(self):
