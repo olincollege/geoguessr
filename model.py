@@ -219,6 +219,11 @@ class GeoGuessr:
         return self._input_error
 
     @property
+    def user_text(self):
+        """Return user_text instance."""
+        return self._user_text
+
+    @property
     def mode(self):
         """Return mode instance."""
         return self._mode

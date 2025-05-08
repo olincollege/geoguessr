@@ -1,6 +1,6 @@
-#  🌏 Geoguessr 🌏
+# 🌏 Geoguessr 🌏
 
-This is a python-based remake of Geoguessr aimed at educating users on geography in an immersing way. Learn more about different countries and cultures, and take inspiration for your real-life travels!
+This is a python-based remake of Geoguessr aimed at educating users on geography in an immersing way. Learn more about different countries and cultures and take inspiration for your real-life travels!
 
 ## Overview
 
@@ -8,7 +8,7 @@ This game recreates the Geoguessr experience with:
 * 10k Google Street View images across all 7 continents
 * A point system based on gaussian distributions
 * Latitude and longitude conversions with haversine functions
-* An interactive world map
+* A visualization of your guess and answer on a world map
 
 
 ## Set-Up
@@ -37,16 +37,23 @@ This game recreates the Geoguessr experience with:
     mkdir -p dataset/images && mv dataset/*.png dataset/images/
     ```    
 
-5. Run the game and enjoy!
+## Let's Play
+Run the game with ```main.py```. 
 
-    ```
-    python main.py
-    ```
+![alt text](image.png)
+Click on the gray box to input your guess latitude and longitude (ex. -30.2 40.5).
 
+![alt text](image-1.png)
+Click on the blue button to submit your guess.
+
+![alt text](image-2.png)
+Then click on the green button to move on to the next round.
+
+***Note that the button turns red if your input is not in the right format as seen below:***
+![alt text](image-3.png)
  
 ## Testing
 Test our game function and logic by running `pytest` at the root of the repo. 
-
 
 ## Contributors
 The contributors for this project are Esther Aduamah and Irene Hong. Geoguessr was a culminating project for our Intro to Python course to demonstrate our implementation of an MVC architecture with an interactive activity. 
