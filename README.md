@@ -40,17 +40,17 @@ This game recreates the Geoguessr experience with:
 ## Let's Play
 Run the game with ```main.py```. 
 
-![alt text](website_screenshots/image-1.png)
+![alt text](website_screenshots/image.png)
 Click on the gray box to input your guess latitude and longitude (ex. -30.2 40.5).
 
-![alt text](website_screenshots/image-2.png)
+![alt text](website_screenshots/image-1.png)
 Click on the blue button to submit your guess.
 
-![alt text](website_screenshots/image-3.png)
+![alt text](website_screenshots/image-2.png)
 Then click on the green button to move on to the next round.
 
 ***Note that the button turns red if your input is not in the right format as seen below:***
-![alt text](image-3.png)
+![alt text](website_screenshots/image-3.png)
  
 ## Testing
 Test our game function and logic by running `pytest` at the root of the repository.
