@@ -32,7 +32,7 @@ class GeoGuessr:
         correct_lon_pixels (float): converted x coordinate of correct_lat
         on map in pixels.
         distance (int): distance between player's guess and answer in
-        meters.
+        kilometers.
         input_error (bool): whether or not input was valid.
     """
 
@@ -198,7 +198,6 @@ class GeoGuessr:
         parts = line.split(",")
         self._correct_lat = float(parts[0])
         self._correct_lon = float(parts[1])
-        print(line, self._correct_lon, self._correct_lat)
 
     def no_error(self):
         """

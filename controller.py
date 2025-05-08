@@ -96,7 +96,6 @@ class Controller:
                     user_input = self._model.user_text.strip().split()
                     # Check that latitude/longitude are both given
                     if len(user_input) != 2:
-                        print("Invalid input: not two values")
                         self._model.set_input_error(True)
                     else:
                         # Get scores for processed latitude/longitude

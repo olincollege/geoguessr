@@ -227,7 +227,7 @@ class View:
         Collects the stats of the scoreboard as text objects.
         """
         # Collect strings for stats
-        self._distance_text = f"Distance: {self._model.distance} meters"
+        self._distance_text = f"Distance: {self._model.distance} kilometers"
         self._score_text = f"Score: {self._model.current_score} points"
         self._average_score_text = (
             f"Average Score: {self._model.average_score} points"

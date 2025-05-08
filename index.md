@@ -27,6 +27,8 @@ Look at your running stats on the scoreboard and compare your guess with the ans
 ***Note that the button turns red if your input is not in the right format as seen below:***
 ![alt text](website_screenshots/image-3.png)
 
+## Demo
+[![alt text](geoguessr.jpg)](https://youtu.be/WwPZvNwUtBw)
 
 ## Do you want to download Geoguessr Lite for yourself?
 1. To play the game yourself, clone our [repository](https://github.com/olincollege/geoguessr): https://github.com/olincollege/geoguessr 
