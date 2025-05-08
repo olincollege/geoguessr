@@ -15,17 +15,17 @@ This game recreates the Geoguessr experience with:
 ***Now let's explore the world!***
 
 ## Game Controls
-![alt text](image.png)
+![alt text](website_screenshots/image.png)
 Click on the gray box to input your guess latitude and longitude (ex. -30.2 40.5).
 
-![alt text](image-1.png)
+![alt text](website_screenshots/image-1.png)
 Click on the blue button to submit your guess.
 
-![alt text](image-2.png)
+![alt text](website_screenshots/image-2.png)
 Look at your running stats on the scoreboard and compare your guess with the answer on the map! Then, click on the green button to move on to the next round.
 
 ***Note that the button turns red if your input is not in the right format as seen below:***
-![alt text](image-3.png)
+![alt text](website_screenshots/image-3.png)
 
 
 ## Do you want to download Geoguessr Lite for yourself?
