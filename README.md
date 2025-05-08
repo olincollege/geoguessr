@@ -1,4 +1,4 @@
-# 🌏 Geoguessr 🌏
+# 🌏 Geoguessr Lite 🌏
 
 This is a python-based remake of Geoguessr aimed at educating users on geography in an immersing way. Learn more about different countries and cultures and take inspiration for your real-life travels!
 
