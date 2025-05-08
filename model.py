@@ -147,7 +147,7 @@ class GeoGuessr:
         Gaussian distribution.
         """
         HIGHEST_SCORE = 5000
-        SIGMA = 2500000
+        SIGMA = 500000
         self._current_score = round(
             HIGHEST_SCORE * exp(-0.5 * pow((self._distance / SIGMA), 2))
         )

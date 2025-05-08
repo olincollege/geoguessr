@@ -108,7 +108,7 @@ class Controller:
                             )
                             self._model.set_input_error(False)
                             self._model.get_score()
-                        # Check that latitude/longitude inputs are numbers
+                        # Check that latitude/longitude inputs are actual numbers
                         except ValueError:
                             print("Invalid input: not numbers")
                             self._model.set_input_error(True)
@@ -117,7 +117,7 @@ class Controller:
                     self._view.toggle_input_rect()
                     self._model.set_input_error(False)
 
-            # Adds and deletes text when user uses backspace or types
+            # Adds and deletes text when user uses backspace or types on keyboard
             if self._view.input_active and event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
                     self._model.delete_user_text()
